@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { Product } from '../types'
+import type { Product, SearchHistoryEntry } from '../types'
 import { discoverProducts, MissingApiKeyError } from '../lib/claude'
 import { getUniqueProducts, getProductById } from '../lib/products'
 import { useAppStore } from '../store/useAppStore'
@@ -11,6 +11,16 @@ const EXAMPLE_PROMPTS = [
   'Warm layers for an alpine winter ascent',
 ]
 
+function timeAgo(ts: number): string {
+  const s = Math.floor((Date.now() - ts) / 1000)
+  if (s < 60) return 'just now'
+  const m = Math.floor(s / 60)
+  if (m < 60) return `${m}m ago`
+  const h = Math.floor(m / 60)
+  if (h < 24) return `${h}h ago`
+  return `${Math.floor(h / 24)}d ago`
+}
+
 export default function DiscoverPage() {
   const [prompt, setPrompt] = useState('')
   const [loading, setLoading] = useState(false)
@@ -20,6 +30,20 @@ export default function DiscoverPage() {
 
   const addToList = useAppStore((s) => s.addToList)
   const shoppingList = useAppStore((s) => s.shoppingList)
+  const searchHistory = useAppStore((s) => s.searchHistory)
+  const addSearch = useAppStore((s) => s.addSearch)
+  const clearSearchHistory = useAppStore((s) => s.clearSearchHistory)
+
+  function restoreSearch(entry: SearchHistoryEntry) {
+    if (loading) return
+    const products = entry.productIds
+      .map((id) => getProductById(id))
+      .filter((p): p is Product => p !== undefined)
+    setPrompt(entry.prompt)
+    setError(null)
+    setSearched(true)
+    setResults(products)
+  }
 
   async function handleSubmit() {
     const trimmed = prompt.trim()
@@ -47,6 +71,9 @@ export default function DiscoverPage() {
         .map((entry) => entry.p)
 
       setResults(sorted)
+      if (sorted.length > 0) {
+        addSearch(trimmed, sorted.map((p) => p.product_id))
+      }
     } catch (err) {
       if (err instanceof MissingApiKeyError) {
         setError(err.message)
@@ -89,6 +116,49 @@ export default function DiscoverPage() {
           </button>
         </div>
       </div>
+
+      {/* Recent searches */}
+      {searchHistory.length > 0 && (
+        <div className="mt-6 rounded-xl bg-white p-4 shadow-sm sm:p-5">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-bold text-gray-900">
+              Recent searches
+            </h2>
+            <button
+              type="button"
+              onClick={clearSearchHistory}
+              className="text-xs font-semibold text-forest hover:underline"
+            >
+              Clear
+            </button>
+          </div>
+          <ul className="mt-2 divide-y divide-slate-bg">
+            {searchHistory.map((entry) => (
+              <li key={entry.id}>
+                <button
+                  type="button"
+                  onClick={() => restoreSearch(entry)}
+                  className="-mx-2 flex w-full items-center justify-between gap-3 rounded-lg px-2 py-2.5 text-left transition-colors hover:bg-forest-50"
+                >
+                  <span className="min-w-0">
+                    <span className="block truncate text-sm font-medium text-gray-800">
+                      {entry.prompt}
+                    </span>
+                    <span className="text-xs text-gray-400">
+                      {entry.productIds.length} recommendation
+                      {entry.productIds.length === 1 ? '' : 's'} ·{' '}
+                      {timeAgo(entry.at)}
+                    </span>
+                  </span>
+                  <span className="shrink-0 text-xs font-semibold text-forest">
+                    View →
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {/* Loading */}
       {loading && (

@@ -27,9 +27,10 @@ export default function NavBar() {
           </span>
         </NavLink>
         <div className="flex items-center gap-1">
-          <NavLink to="/" className={linkClass} end>
+          {/* Plan tab disabled for now (kept in code, not removed). */}
+          {/* <NavLink to="/" className={linkClass} end>
             Plan
-          </NavLink>
+          </NavLink> */}
           <NavLink to="/discover" className={linkClass}>
             Discover
           </NavLink>

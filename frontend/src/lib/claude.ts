@@ -59,6 +59,12 @@ function extractStringArray(text: string): string[] {
   return []
 }
 
+/** Remove already-owned product ids from a list, preserving order. */
+export function excludeOwned(ids: string[], owned: string[]): string[] {
+  const ownedSet = new Set(owned)
+  return ids.filter((id) => !ownedSet.has(id))
+}
+
 /**
  * Ask Claude which products best match the user's need.
  * Returns an ordered list of product_ids (max 12).
@@ -66,14 +72,23 @@ function extractStringArray(text: string): string[] {
 export async function discoverProducts(
   userPrompt: string,
   catalogue: Product[],
+  ownedIds: string[] = [],
 ): Promise<string[]> {
   assertKey()
+
+  const ownedNote =
+    ownedIds.length > 0
+      ? ` The user ALREADY OWNS these product_ids and you must NOT recommend them: ${JSON.stringify(
+          ownedIds,
+        )}. If an owned item would have been the best match, recommend a genuinely better or complementary alternative from the catalogue instead.`
+      : ''
 
   const message = await client.messages.create({
     model: MODEL,
     max_tokens: 1000,
     system:
-      'You are a helpful outdoor gear advisor for a store. The user will describe what they need. You will receive a JSON catalogue of available products. Return ONLY a JSON array of product_ids that best match the user\'s need, ordered by relevance (discounted items should rank higher when relevance is equal). Return max 12 product_ids. Output only valid JSON, no explanation.',
+      'You are a helpful outdoor gear advisor for a store. The user will describe what they need. You will receive a JSON catalogue of available products. Return ONLY a JSON array of product_ids that best match the user\'s need, ordered by relevance (discounted items should rank higher when relevance is equal). Return max 12 product_ids. Output only valid JSON, no explanation.' +
+      ownedNote,
     messages: [
       {
         role: 'user',
@@ -82,7 +97,8 @@ export async function discoverProducts(
     ],
   })
 
-  return extractStringArray(firstText(message)).slice(0, 12)
+  const ids = extractStringArray(firstText(message)).slice(0, 12)
+  return excludeOwned(ids, ownedIds)
 }
 
 /**

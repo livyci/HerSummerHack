@@ -20,6 +20,10 @@ export default function DiscoverPage() {
 
   const addToList = useAppStore((s) => s.addToList)
   const shoppingList = useAppStore((s) => s.shoppingList)
+  const purchases = useAppStore((s) => s.purchases)
+  const token = useAppStore((s) => s.token)
+  const markAsBought = useAppStore((s) => s.markAsBought)
+  const unmarkBought = useAppStore((s) => s.unmarkBought)
 
   async function handleSubmit() {
     const trimmed = prompt.trim()
@@ -30,7 +34,7 @@ export default function DiscoverPage() {
     setSearched(true)
 
     try {
-      const ids = await discoverProducts(trimmed, getUniqueProducts())
+      const ids = await discoverProducts(trimmed, getUniqueProducts(), purchases)
       const products = ids
         .map((id) => getProductById(id))
         .filter((p): p is Product => p !== undefined)
@@ -151,6 +155,9 @@ export default function DiscoverPage() {
                 added={shoppingList.some(
                   (i) => i.productId === product.product_id,
                 )}
+                owned={purchases.includes(product.product_id)}
+                onMarkBought={token ? markAsBought : undefined}
+                onUnmarkBought={token ? unmarkBought : undefined}
               />
             ))}
           </div>

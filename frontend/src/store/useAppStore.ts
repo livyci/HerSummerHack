@@ -1,7 +1,8 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { ShoppingListItem, ScannedItem, SearchHistoryEntry } from '../types'
-import { getSizesForProduct } from '../lib/products'
+import { getSizesForProduct, getProductById } from '../lib/products'
+import { getCurrentPrefs } from './useUserStore'
 
 const MAX_SEARCH_HISTORY = 12
 
@@ -38,9 +39,16 @@ export const useAppStore = create<AppState>()(
             return state
           }
           const sizes = getSizesForProduct(productId)
+          // Default to the active account's preferred size for this category.
+          const product = getProductById(productId)
+          const preferred = product
+            ? getCurrentPrefs().sizesByCategory[product.category]
+            : undefined
+          const selectedSize =
+            preferred && sizes.includes(preferred) ? preferred : sizes[0]
           const item: ShoppingListItem = {
             productId,
-            selectedSize: sizes[0],
+            selectedSize,
             checked: false,
             addedAt: Date.now(),
           }

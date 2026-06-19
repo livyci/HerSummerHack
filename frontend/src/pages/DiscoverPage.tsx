@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { Navigate } from 'react-router-dom'
 import type { SearchFilters } from '../types'
 import { parsePromptToFilters, MissingApiKeyError } from '../lib/claude'
 import {
@@ -12,7 +11,7 @@ import {
 } from '../lib/products'
 import { formatCategory } from '../lib/format'
 import { useAppStore } from '../store/useAppStore'
-import { usePreferencesStore } from '../store/usePreferencesStore'
+import { useCurrentUser } from '../store/useUserStore'
 import ProductCard from '../components/ProductCard'
 
 const AVAILABLE_TAGS = getAllTags()
@@ -49,9 +48,7 @@ function mergeFilters(base: SearchFilters, incoming: SearchFilters): SearchFilte
 }
 
 export default function DiscoverPage() {
-  const onboarded = usePreferencesStore((s) => s.preferences.onboarded)
-  const skippedOnboarding = usePreferencesStore((s) => s.skippedOnboarding)
-  const preferences = usePreferencesStore((s) => s.preferences)
+  const preferences = useCurrentUser().prefs
   const addToList = useAppStore((s) => s.addToList)
   const shoppingList = useAppStore((s) => s.shoppingList)
 
@@ -61,12 +58,6 @@ export default function DiscoverPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showAddFilter, setShowAddFilter] = useState(false)
-
-  // New shoppers set up preferences first; "Skip for now" lets them through
-  // for the session without marking them onboarded.
-  if (!onboarded && !skippedOnboarding) {
-    return <Navigate to="/preferences" replace />
-  }
 
   // Pure, synchronous — recomputed on every render, no AI call.
   const results = engaged
@@ -339,6 +330,7 @@ export default function DiscoverPage() {
                       (i) => i.productId === product.product_id,
                     )}
                     reasons={explainRecommendation(product, filters, preferences)}
+                    favoriteColors={preferences.favoriteColors}
                   />
                 ))}
               </div>

@@ -59,6 +59,32 @@ export function getCategories(): string[] {
   return Array.from(new Set(ALL.map((p) => p.category))).sort()
 }
 
+/** Curated apparel sizes (the catalogue also has shoe / volume sizes). */
+export const APPAREL_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL']
+
+/** All distinct product colours in the catalogue, sorted. */
+export function getColors(): string[] {
+  return Array.from(new Set(ALL.map((p) => p.color).filter(Boolean))).sort()
+}
+
+/** All distinct brands in the catalogue, sorted. */
+export function getBrands(): string[] {
+  return Array.from(new Set(ALL.map((p) => p.brand)))
+    .filter((b): b is string => Boolean(b))
+    .sort()
+}
+
+/** Distinct sizes available within a single category, sorted. */
+export function getSizesForCategory(category: string): string[] {
+  return Array.from(
+    new Set(
+      ALL.filter((p) => p.category === category)
+        .map((p) => p.size)
+        .filter((s): s is string => Boolean(s)),
+    ),
+  ).sort()
+}
+
 /** All distinct product tags in the catalogue, sorted. */
 export function getAllTags(): string[] {
   return Array.from(new Set(ALL.flatMap((p) => p.tags)))
@@ -131,31 +157,6 @@ export function explainRecommendation(
     reasons.push({ kind: 'in-stock-nearby', label: 'On the shelf now' })
   }
   return reasons
-}
-
-/** All distinct product colours in the catalogue, sorted. */
-export function getColors(): string[] {
-  return Array.from(new Set(ALL.map((p) => p.color)))
-    .filter((c): c is string => Boolean(c))
-    .sort()
-}
-
-/** All distinct brands in the catalogue, sorted. */
-export function getBrands(): string[] {
-  return Array.from(new Set(ALL.map((p) => p.brand)))
-    .filter((b): b is string => Boolean(b))
-    .sort()
-}
-
-/** Distinct sizes available within a single category, sorted. */
-export function getSizesForCategory(category: string): string[] {
-  return Array.from(
-    new Set(
-      ALL.filter((p) => p.category === category)
-        .map((p) => p.size)
-        .filter((s): s is string => Boolean(s)),
-    ),
-  ).sort()
 }
 
 export function getZones(): { zone: string; zone_name: string }[] {

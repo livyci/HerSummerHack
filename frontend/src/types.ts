@@ -50,14 +50,13 @@ export interface SearchFilters {
   freeText: string
 }
 
-/** A shopper's saved preferences, used to personalise Discover results. */
+/** A shopper's saved preferences (per account), used to personalise Discover. */
 export interface UserPreferences {
   sizesByCategory: Record<string, string>
   favoriteColors: string[]
   budgetMinChf: number | null
   budgetMaxChf: number | null
   preferredBrands: string[]
-  onboarded: boolean
 }
 
 /** A real, computed reason a product is being shown ("why am I seeing this"). */

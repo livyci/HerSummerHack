@@ -9,6 +9,7 @@ interface ProductCardProps {
   onAdd?: (productId: string) => void
   added?: boolean
   reasons?: RecommendationReason[]
+  favoriteColors?: string[]
 }
 
 export default function ProductCard({
@@ -16,15 +17,23 @@ export default function ProductCard({
   onAdd,
   added,
   reasons,
+  favoriteColors,
 }: ProductCardProps) {
   const discounted = product.discount_pct > 0
   const final = effectivePrice(product)
+  // Substring match is intentional: favourite "Teal" also highlights
+  // "Teal Stripe", "Teal Dot", etc.
+  const isFavColor =
+    !!favoriteColors &&
+    favoriteColors.some((fc) =>
+      product.color.toLowerCase().includes(fc.toLowerCase()),
+    )
 
   return (
     <div
       className={`flex flex-col rounded-xl bg-white p-4 shadow-sm ${
         discounted ? 'border-2 border-amber bg-amber/5' : 'border border-slate-bg'
-      }`}
+      } ${isFavColor ? 'ring-2 ring-amber ring-offset-2' : ''}`}
     >
       <div className="flex items-start justify-between gap-2">
         <h3 className="text-base font-bold text-gray-900 leading-tight">
@@ -44,9 +53,7 @@ export default function ProductCard({
             <span className="text-sm text-gray-400 line-through">
               CHF {product.price_chf}
             </span>
-            <span className="text-lg font-bold text-amber-dark">
-              CHF {final}
-            </span>
+            <span className="text-lg font-bold text-amber-dark">CHF {final}</span>
           </>
         ) : (
           <span className="text-lg font-bold text-forest">

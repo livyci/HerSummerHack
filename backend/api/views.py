@@ -7,6 +7,9 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
+import anthropic
+
+from . import ai
 from .models import Purchase
 
 
@@ -73,3 +76,51 @@ def purchases(request):
 def purchase_detail(request, product_id):
     Purchase.objects.filter(user=request.user, product_id=product_id).delete()
     return Response({"product_ids": _product_ids(request.user)})
+
+
+# ---- AI (Anthropic, server-side; the API key never reaches the browser) ----
+
+
+def _ai_call(fn):
+    """Run an AI helper, translating failures into clean JSON responses.
+
+    503 = server has no API key configured; 502 = upstream Anthropic error.
+    """
+    try:
+        return Response(fn())
+    except ai.MissingApiKey as exc:
+        return Response({"error": str(exc)}, status=503)
+    except anthropic.APIError as exc:
+        message = getattr(exc, "message", None) or str(exc)
+        return Response({"error": f"Anthropic API error: {message}"}, status=502)
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def ai_discover(request):
+    data = request.data
+    return _ai_call(
+        lambda: ai.parse_prompt_to_filters(
+            data.get("prompt", ""),
+            data.get("availableTags") or [],
+            data.get("availableCategories") or [],
+            data.get("availableColors") or [],
+        )
+    )
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def ai_compare(request):
+    scanned = request.data.get("scanned")
+    list_item = request.data.get("listItem")
+    if scanned is None or list_item is None:
+        return Response({"error": "scanned and listItem are required."}, status=400)
+    return _ai_call(lambda: {"text": ai.compare_products(scanned, list_item)})
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def ai_promotions(request):
+    products = request.data.get("products") or []
+    return _ai_call(lambda: {"text": ai.suggest_promotions(products)})

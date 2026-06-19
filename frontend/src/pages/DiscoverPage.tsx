@@ -89,7 +89,11 @@ export default function DiscoverPage() {
       if (err instanceof MissingApiKeyError) {
         setError(err.message)
       } else {
-        setError('Something went wrong calling the AI. Please try again.')
+        setError(
+          err instanceof Error
+            ? err.message
+            : 'Something went wrong calling the AI. Please try again.',
+        )
       }
       setResults([])
     } finally {

@@ -26,6 +26,29 @@ function assertKey(): void {
   if (!apiKey) throw new MissingApiKeyError()
 }
 
+/**
+ * Run a Messages request and turn Anthropic SDK errors into a concise,
+ * actionable message (HTTP status + API explanation) instead of an opaque
+ * throw. This surfaces the real cause (401 bad key, 400 low credit, CORS, …)
+ * to the UI rather than a generic "something went wrong".
+ */
+async function createMessage(
+  params: Anthropic.MessageCreateParamsNonStreaming,
+): Promise<Anthropic.Message> {
+  try {
+    return await client.messages.create(params)
+  } catch (err) {
+    if (err instanceof Anthropic.APIError) {
+      const status = err.status ?? 'network'
+      // err.error is the parsed API body, shape: { error: { type, message } }
+      const body = err.error as { error?: { message?: string } } | undefined
+      const detail = body?.error?.message ?? err.message
+      throw new Error(`Anthropic API error (${status}): ${detail}`)
+    }
+    throw err
+  }
+}
+
 /** Pull the first text block out of a messages response. */
 function firstText(message: Anthropic.Message): string {
   for (const block of message.content) {
@@ -78,7 +101,7 @@ export async function discoverProducts(
   // the caller (DiscoverPage filters via getProductById).
   const safePrompt = userPrompt.slice(0, MAX_PROMPT_CHARS)
 
-  const message = await client.messages.create({
+  const message = await createMessage({
     model: MODEL,
     max_tokens: 256,
     system:
@@ -104,7 +127,7 @@ export async function compareProducts(
 ): Promise<string> {
   assertKey()
 
-  const message = await client.messages.create({
+  const message = await createMessage({
     model: MODEL,
     max_tokens: 1000,
     system:
@@ -128,7 +151,7 @@ export async function suggestPromotions(
 ): Promise<string> {
   assertKey()
 
-  const message = await client.messages.create({
+  const message = await createMessage({
     model: MODEL,
     max_tokens: 1000,
     system:

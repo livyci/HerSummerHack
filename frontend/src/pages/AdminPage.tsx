@@ -113,7 +113,11 @@ export default function AdminPage() {
       if (err instanceof MissingApiKeyError) {
         setPromoError(err.message)
       } else {
-        setPromoError('Could not generate suggestions right now. Please try again.')
+        setPromoError(
+          err instanceof Error
+            ? err.message
+            : 'Could not generate suggestions right now. Please try again.',
+        )
       }
     } finally {
       setPromoLoading(false)

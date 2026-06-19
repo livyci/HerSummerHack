@@ -27,10 +27,14 @@ export default function NavBar() {
           </span>
         </NavLink>
         <div className="flex items-center gap-1">
-          {/* Plan tab disabled for now (kept in code, not removed). */}
-          {/* <NavLink to="/" className={linkClass} end>
+          {/* Plan tab is shown but disabled (visible, not clickable) for now. */}
+          <span
+            aria-disabled="true"
+            title="Coming soon"
+            className="px-3 py-2 rounded-full text-sm font-semibold text-muted-foreground/50 cursor-not-allowed select-none"
+          >
             Plan
-          </NavLink> */}
+          </span>
           <NavLink to="/discover" className={linkClass}>
             Discover
           </NavLink>

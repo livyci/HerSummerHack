@@ -62,3 +62,11 @@ export function getZones(): { zone: string; zone_name: string }[] {
     .map(([zone, zone_name]) => ({ zone, zone_name }))
     .sort((a, b) => a.zone.localeCompare(b.zone))
 }
+
+/** Curated apparel sizes for the profile picker (catalog also has shoe/volume sizes). */
+export const APPAREL_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL']
+
+/** All distinct product colours present in the catalog, sorted. */
+export function getColors(): string[] {
+  return Array.from(new Set(ALL.map((p) => p.color).filter(Boolean))).sort()
+}

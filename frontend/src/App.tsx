@@ -3,6 +3,7 @@ import NavBar from './components/NavBar'
 import DiscoverPage from './pages/DiscoverPage'
 import ShoppingPage from './pages/ShoppingPage'
 import AdminPage from './pages/AdminPage'
+import ProfilePage from './pages/ProfilePage'
 
 export default function App() {
   return (
@@ -13,6 +14,7 @@ export default function App() {
           <Route path="/" element={<DiscoverPage />} />
           <Route path="/shopping" element={<ShoppingPage />} />
           <Route path="/admin" element={<AdminPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
         </Routes>
       </main>
     </div>

@@ -101,7 +101,9 @@ export default function DiscoverPage() {
       if (err instanceof MissingApiKeyError) {
         setError(err.message)
       } else {
-        setError('Something went wrong reading your request. Please try again.')
+        console.error('Claude API error:', err)
+        const msg = err instanceof Error ? err.message : String(err)
+        setError(`Something went wrong: ${msg}`)
       }
     } finally {
       setLoading(false)

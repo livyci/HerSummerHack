@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import NavBar from './components/NavBar'
+import BottomNav from './components/BottomNav'
 import ConciergeApp from './components/concierge/ConciergeApp'
 import DiscoverPage from './pages/DiscoverPage'
 import ShoppingPage from './pages/ShoppingPage'
@@ -22,7 +23,7 @@ export default function App() {
   return (
     <div className="min-h-full flex flex-col">
       <NavBar />
-      <main className="flex-1">
+      <main className="flex-1 pb-24">
         <Routes>
           <Route path="/" element={<ConciergeApp />} />
           <Route path="/discover" element={<DiscoverPage />} />
@@ -34,6 +35,7 @@ export default function App() {
           <Route path="/profile" element={<ProfilePage />} />
         </Routes>
       </main>
+      <BottomNav />
     </div>
   )
 }

@@ -37,32 +37,32 @@ export default function ProductCard({
 
   return (
     <div
-      className={`flex flex-col rounded-xl bg-white p-4 shadow-sm ${
-        discounted ? 'border-2 border-amber bg-amber/5' : 'border border-slate-bg'
+      className={`flex flex-col rounded-2xl bg-card p-4 shadow-sm ${
+        discounted ? 'border-2 border-amber bg-amber/5' : 'border border-border'
       } ${isFavColor ? 'ring-2 ring-amber ring-offset-2' : ''}`}
     >
       <div className="flex items-start justify-between gap-2">
-        <h3 className="text-base font-bold text-gray-900 leading-tight">
+        <h3 className="text-base font-bold text-foreground leading-tight">
           {product.name}
         </h3>
         <DiscountBadge pct={product.discount_pct} />
       </div>
 
-      <p className="mt-0.5 text-sm text-gray-500">
+      <p className="mt-0.5 text-sm text-muted-foreground">
         {product.brand} · {formatCategory(product.category)}
       </p>
-      <p className="text-sm text-gray-500">{product.color}</p>
+      <p className="text-sm text-muted-foreground">{product.color}</p>
 
       <div className="mt-2 flex items-baseline gap-2">
         {discounted ? (
           <>
-            <span className="text-sm text-gray-400 line-through">
+            <span className="text-sm text-muted-foreground line-through">
               CHF {product.price_chf}
             </span>
             <span className="text-lg font-bold text-amber-dark">CHF {final}</span>
           </>
         ) : (
-          <span className="text-lg font-bold text-forest">
+          <span className="text-lg font-bold text-foreground">
             CHF {product.price_chf}
           </span>
         )}
@@ -76,12 +76,12 @@ export default function ProductCard({
         </div>
       )}
 
-      <p className="mt-2 text-sm text-gray-600">
+      <p className="mt-2 text-sm text-muted-foreground">
         📍 Zone {product.zone} ({product.zone_name}), Aisle {product.aisle}
       </p>
-      <p className="text-sm text-gray-500">{product.stock_total} in stock</p>
+      <p className="text-sm text-muted-foreground">{product.stock_total} in stock</p>
 
-      <p className="mt-2 text-sm text-gray-600 line-clamp-2">
+      <p className="mt-2 text-sm text-muted-foreground line-clamp-2">
         {product.description}
       </p>
 
@@ -92,8 +92,8 @@ export default function ProductCard({
           onClick={() => onAdd(product.product_id)}
           className={`mt-4 w-full rounded-xl px-4 py-3 text-sm font-semibold transition-colors ${
             added
-              ? 'bg-forest-50 text-forest cursor-default'
-              : 'bg-forest text-white hover:bg-forest-dark'
+              ? 'bg-muted text-muted-foreground cursor-default'
+              : 'bg-primary text-primary-foreground hover:bg-primary/90'
           }`}
         >
           {added ? '✓ On your list' : 'Add to my list'}
@@ -103,7 +103,7 @@ export default function ProductCard({
         <button
           type="button"
           onClick={() => onUnmarkBought?.(product.product_id)}
-          className="mt-2 w-full rounded-xl bg-forest-50 px-4 py-2 text-sm font-semibold text-forest transition-colors hover:bg-forest hover:text-white"
+          className="mt-2 w-full rounded-xl bg-muted px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-primary hover:text-primary-foreground"
         >
           ✓ Bought — tap to undo
         </button>
@@ -112,7 +112,7 @@ export default function ProductCard({
           <button
             type="button"
             onClick={() => onMarkBought(product.product_id)}
-            className="mt-2 w-full rounded-xl border border-forest px-4 py-2 text-sm font-semibold text-forest transition-colors hover:bg-forest hover:text-white"
+            className="mt-2 w-full rounded-xl border border-border px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-primary hover:text-primary-foreground"
           >
             Mark as bought
           </button>

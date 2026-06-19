@@ -50,9 +50,9 @@ export default function ProfilePage() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
-      <div className="rounded-xl bg-forest p-6 text-white shadow-md">
+      <div className="rounded-2xl bg-primary p-6 text-primary-foreground shadow-sm">
         <h1 className="text-2xl font-bold">My profile</h1>
-        <p className="mt-1 text-forest-50/90 text-sm">
+        <p className="mt-1 text-primary-foreground/90 text-sm">
           Signed in as <span className="font-semibold">{current.name}</span>.
           Your preferences personalise Discover, default sizes, and product
           highlights. Changes save automatically.
@@ -60,21 +60,21 @@ export default function ProfilePage() {
       </div>
 
       {/* Sizes */}
-      <section className="mt-6 rounded-xl bg-white p-5 shadow-sm">
-        <h2 className="text-base font-bold text-gray-900">Your sizes</h2>
-        <p className="mt-0.5 text-sm text-gray-500">
+      <section className="mt-6 rounded-2xl bg-card border border-border p-5 shadow-sm">
+        <h2 className="text-base font-bold text-foreground">Your sizes</h2>
+        <p className="mt-0.5 text-sm text-muted-foreground">
           Per category — leave any blank if it doesn't apply.
         </p>
         <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
           {SIZED_CATEGORIES.map((category) => (
             <label key={category} className="text-sm">
-              <span className="mb-1 block font-medium text-gray-600">
+              <span className="mb-1 block font-medium text-muted-foreground">
                 {formatCategory(category)}
               </span>
               <select
                 value={prefs.sizesByCategory[category] ?? ''}
                 onChange={(e) => setSizeFor(category, e.target.value)}
-                className="w-full rounded-xl border border-slate-bg bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-forest"
+                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
               >
                 <option value="">No preference</option>
                 {getSizesForCategory(category).map((size) => (
@@ -89,9 +89,9 @@ export default function ProfilePage() {
       </section>
 
       {/* Favourite colours */}
-      <section className="mt-5 rounded-xl bg-white p-5 shadow-sm">
-        <h2 className="text-base font-bold text-gray-900">Favourite colours</h2>
-        <p className="mt-0.5 text-sm text-gray-500">
+      <section className="mt-5 rounded-2xl bg-card border border-border p-5 shadow-sm">
+        <h2 className="text-base font-bold text-foreground">Favourite colours</h2>
+        <p className="mt-0.5 text-sm text-muted-foreground">
           Matching products are highlighted across the app.
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
@@ -105,7 +105,7 @@ export default function ProfilePage() {
                 className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
                   active
                     ? 'bg-amber text-white'
-                    : 'border border-slate-bg bg-white text-gray-700 hover:bg-amber/10'
+                    : 'border border-border bg-background text-foreground hover:bg-amber/10'
                 }`}
               >
                 {color}
@@ -116,11 +116,11 @@ export default function ProfilePage() {
       </section>
 
       {/* Budget */}
-      <section className="mt-5 rounded-xl bg-white p-5 shadow-sm">
-        <h2 className="text-base font-bold text-gray-900">Budget (CHF)</h2>
+      <section className="mt-5 rounded-2xl bg-card border border-border p-5 shadow-sm">
+        <h2 className="text-base font-bold text-foreground">Budget (CHF)</h2>
         <div className="mt-3 flex flex-wrap gap-3">
           <label className="text-sm">
-            <span className="mb-1 block font-medium text-gray-600">Min</span>
+            <span className="mb-1 block font-medium text-muted-foreground">Min</span>
             <input
               type="number"
               min={0}
@@ -130,11 +130,11 @@ export default function ProfilePage() {
                 updatePrefs({ budgetMinChf: parseAmount(e.target.value) })
               }
               placeholder="—"
-              className="w-32 rounded-xl border border-slate-bg bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-forest"
+              className="w-32 rounded-xl border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
             />
           </label>
           <label className="text-sm">
-            <span className="mb-1 block font-medium text-gray-600">Max</span>
+            <span className="mb-1 block font-medium text-muted-foreground">Max</span>
             <input
               type="number"
               min={0}
@@ -144,15 +144,15 @@ export default function ProfilePage() {
                 updatePrefs({ budgetMaxChf: parseAmount(e.target.value) })
               }
               placeholder="—"
-              className="w-32 rounded-xl border border-slate-bg bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-forest"
+              className="w-32 rounded-xl border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
             />
           </label>
         </div>
       </section>
 
       {/* Preferred brands */}
-      <section className="mt-5 rounded-xl bg-white p-5 shadow-sm">
-        <h2 className="text-base font-bold text-gray-900">Preferred brands</h2>
+      <section className="mt-5 rounded-2xl bg-card border border-border p-5 shadow-sm">
+        <h2 className="text-base font-bold text-foreground">Preferred brands</h2>
         <div className="mt-3 flex flex-wrap gap-2">
           {BRANDS.map((brand) => {
             const active = prefs.preferredBrands.includes(brand)
@@ -163,8 +163,8 @@ export default function ProfilePage() {
                 onClick={() => toggleBrand(brand)}
                 className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
                   active
-                    ? 'bg-forest text-white'
-                    : 'bg-forest-50 text-forest hover:bg-forest-light hover:text-white'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted text-foreground hover:bg-primary hover:text-primary-foreground'
                 }`}
               >
                 {brand}

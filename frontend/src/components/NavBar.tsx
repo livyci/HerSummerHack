@@ -47,6 +47,9 @@ export default function NavBar() {
               </span>
             )}
           </NavLink>
+          <NavLink to="/inventory" className={linkClass}>
+            Inventory
+          </NavLink>
           <NavLink to="/admin" className={linkClass}>
             Admin
           </NavLink>

@@ -17,6 +17,7 @@ import {
   getDiscounted,
 } from '../lib/products'
 import { suggestPromotions, MissingApiKeyError } from '../lib/claude'
+import { formatCategory } from '../lib/format'
 
 const FOREST = '#2D6A4F'
 const AMBER = '#F4A261'
@@ -147,7 +148,7 @@ export default function AdminPage() {
   const avgPriceByCategory = useMemo(
     () =>
       [...categoryStats]
-        .map((c) => ({ category: c.category, avgPrice: c.avgPrice }))
+        .map((c) => ({ category: formatCategory(c.category), avgPrice: c.avgPrice }))
         .sort((a, b) => b.avgPrice - a.avgPrice),
     [categoryStats],
   )
@@ -155,7 +156,7 @@ export default function AdminPage() {
   const skusByCategory = useMemo(
     () =>
       [...categoryStats]
-        .map((c) => ({ category: c.category, skus: c.skus }))
+        .map((c) => ({ category: formatCategory(c.category), skus: c.skus }))
         .sort((a, b) => b.skus - a.skus),
     [categoryStats],
   )
@@ -469,7 +470,7 @@ export default function AdminPage() {
                   className="border-t border-slate-bg text-gray-700"
                 >
                   <td className="py-2 pr-3 font-medium text-gray-900">
-                    {c.category}
+                    {formatCategory(c.category)}
                   </td>
                   <td className="py-2 pr-3">{c.skus}</td>
                   <td className="py-2 pr-3">CHF {c.avgPrice}</td>

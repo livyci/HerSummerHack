@@ -1,0 +1,86 @@
+import { useMemo } from 'react'
+import type { Product } from '../types'
+import { effectivePrice } from '../types'
+import { recommend, type RecReason } from '../lib/recommend'
+import { formatCategory } from '../lib/format'
+
+interface RecommendationsProps {
+  anchor: Product
+  onAdd: (productId: string) => void
+  isAdded: (productId: string) => boolean
+}
+
+const REASON_CLASS: Record<RecReason, string> = {
+  'Pairs well': 'bg-amber/15 text-amber-dark',
+  Similar: 'bg-forest-50 text-forest',
+  Related: 'bg-slate-bg text-gray-600',
+}
+
+export default function Recommendations({
+  anchor,
+  onAdd,
+  isAdded,
+}: RecommendationsProps) {
+  const recs = useMemo(() => recommend(anchor, 6), [anchor])
+
+  if (recs.length === 0) return null
+
+  return (
+    <div className="mt-4 rounded-xl bg-white p-5 shadow-sm">
+      <h3 className="text-base font-bold text-gray-900">
+        Recommended with this
+        <span className="ml-2 text-xs font-normal text-gray-400">
+          pairs well on the trail
+        </span>
+      </h3>
+
+      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+        {recs.map(({ product, reason, sharedTags }) => {
+          const added = isAdded(product.product_id)
+          return (
+            <div
+              key={product.product_id}
+              className="flex flex-col rounded-xl border border-slate-bg p-3"
+            >
+              <span
+                className={`self-start rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${REASON_CLASS[reason]}`}
+              >
+                {reason}
+              </span>
+              <p className="mt-1.5 text-sm font-semibold leading-tight text-gray-900">
+                {product.name}
+              </p>
+              <p className="text-xs text-gray-500">
+                {product.brand} · {formatCategory(product.category)}
+              </p>
+
+              <div className="mt-auto flex items-center justify-between pt-2">
+                <span className="text-sm font-bold text-forest">
+                  CHF {effectivePrice(product)}
+                </span>
+                <button
+                  type="button"
+                  disabled={added}
+                  onClick={() => onAdd(product.product_id)}
+                  className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition-colors ${
+                    added
+                      ? 'bg-forest-50 text-forest cursor-default'
+                      : 'bg-forest text-white hover:bg-forest-dark'
+                  }`}
+                >
+                  {added ? '✓ Added' : 'Add'}
+                </button>
+              </div>
+
+              {sharedTags.length > 0 && (
+                <p className="mt-1 text-[11px] text-gray-400">
+                  {sharedTags.slice(0, 3).join(' · ')}
+                </p>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}

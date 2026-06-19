@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import type { Product } from '../types'
 import { effectivePrice } from '../types'
 import {
@@ -127,6 +128,14 @@ export default function ShoppingPage() {
               {shoppingList.length} item{shoppingList.length === 1 ? '' : 's'}
             </span>
           </div>
+          {shoppingList.length > 0 && (
+            <Link
+              to="/navigate"
+              className="mb-3 flex items-center justify-center gap-2 rounded-xl bg-forest px-4 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-forest-dark"
+            >
+              <span aria-hidden="true">📍</span> Start navigation
+            </Link>
+          )}
           <ShoppingList />
         </section>
 

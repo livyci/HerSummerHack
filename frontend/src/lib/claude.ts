@@ -38,11 +38,21 @@ async function postAi<T>(path: string, body: unknown): Promise<T> {
 
   if (!res.ok) {
     let detail = `AI request failed (${res.status})`
+    let parsedError: string | undefined
     try {
-      const parsed = await res.json()
-      if (parsed?.error) detail = parsed.error
+      parsedError = (await res.json())?.error
     } catch {
-      /* ignore */
+      /* response body wasn't JSON — likely the static SPA, not the API */
+    }
+    if (parsedError) {
+      detail = parsedError
+    } else if (res.status === 404 || res.status === 405) {
+      // The request reached the static site, not the backend API. In a Vercel
+      // deploy the catch-all rewrite serves index.html for /api/*, which 405s
+      // a POST; the fix is to point the frontend at the backend.
+      detail =
+        `AI backend not reachable (HTTP ${res.status}) — the request hit the static site instead of the API. ` +
+        `Set VITE_API_URL to your backend URL for the deployment, or run the Django backend locally.`
     }
     throw new Error(detail)
   }

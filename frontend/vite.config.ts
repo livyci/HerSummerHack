@@ -24,5 +24,10 @@ export default defineConfig({
   },
   preview: {
     headers: crossOriginIsolation,
+    // Mirror the dev proxy so `npm run preview` reaches the local Django
+    // backend too; without this, /api POSTs hit the static server and 405.
+    proxy: {
+      '/api': 'http://localhost:8000',
+    },
   },
 })

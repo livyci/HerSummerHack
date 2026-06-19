@@ -26,7 +26,7 @@ def register(request):
     if User.objects.filter(username=username).exists():
         return Response({"error": "That username is already taken."}, status=400)
     try:
-        validate_password(password)
+        validate_password(password, User(username=username))
     except ValidationError as exc:
         return Response({"error": " ".join(exc.messages)}, status=400)
     user = User.objects.create_user(username=username, password=password)

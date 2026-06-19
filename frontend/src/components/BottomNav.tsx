@@ -1,6 +1,5 @@
 import { NavLink } from 'react-router-dom'
 import {
-  Sparkles,
   Compass,
   ShoppingBag,
   Package,
@@ -15,12 +14,10 @@ type Item = {
   to: string
   label: string
   icon: LucideIcon
-  end?: boolean
   badge?: boolean
 }
 
 const ITEMS: Item[] = [
-  { to: '/', label: 'Plan', icon: Sparkles, end: true },
   { to: '/discover', label: 'Discover', icon: Compass },
   { to: '/shopping', label: 'Shopping', icon: ShoppingBag, badge: true },
   { to: '/inventory', label: 'Inventory', icon: Package },
@@ -34,12 +31,11 @@ export default function BottomNav() {
 
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 backdrop-blur pb-[env(safe-area-inset-bottom)]">
-      <div className="mx-auto grid max-w-2xl grid-cols-6">
-        {ITEMS.map(({ to, label, icon: Icon, end, badge }) => (
+      <div className="mx-auto grid max-w-2xl grid-cols-5">
+        {ITEMS.map(({ to, label, icon: Icon, badge }) => (
           <NavLink
             key={to}
             to={to}
-            end={end}
             className={({ isActive }) =>
               cn(
                 'flex flex-col items-center gap-1 py-2 text-[11px] font-medium transition-colors',

@@ -1,0 +1,86 @@
+// Lovable concierge Product shape, populated from the REAL store catalogue
+// (frontend/src/data/products.json). product_id -> id, price_chf -> price,
+// aisle -> zone, real category bucketed, emoji by category, tags -> features.
+export type Product = {
+  id: string;
+  name: string;
+  price: number;
+  zone: string;
+  category: "Apparel" | "Gear" | "Footwear" | "Accessories";
+  image: string;
+  features: string[];
+};
+
+export const CATALOG: Product[] = [
+  { id: "P001", name: "Stormpeak 3L Hardshell Jacket", price: 349, zone: "A1", category: "Apparel", image: "\ud83e\udde5", features: ["Waterproof", "Windproof", "Breathable"] },
+  { id: "P002", name: "Stormpeak 3L Hardshell Jacket W", price: 349, zone: "A1", category: "Apparel", image: "\ud83e\udde5", features: ["Waterproof", "Windproof", "Breathable"] },
+  { id: "P003", name: "Mistral Windbreaker", price: 119, zone: "A1", category: "Apparel", image: "\ud83e\udde5", features: ["Windproof", "Packable", "Lightweight"] },
+  { id: "P004", name: "Eiderdown 800 Down Jacket", price: 399, zone: "A2", category: "Apparel", image: "\ud83e\udde5", features: ["Insulated", "Down", "Lightweight"] },
+  { id: "P005", name: "Eiderdown 800 Down Jacket W", price: 399, zone: "A2", category: "Apparel", image: "\ud83e\udde5", features: ["Insulated", "Down", "Lightweight"] },
+  { id: "P006", name: "Thermaloft Synthetic Jacket", price: 199, zone: "A2", category: "Apparel", image: "\ud83e\udde5", features: ["Insulated", "Synthetic", "Vegan"] },
+  { id: "P007", name: "Rainpatch 2.5L Jacket", price: 159, zone: "A1", category: "Apparel", image: "\ud83e\udde5", features: ["Waterproof", "Breathable", "Recycled"] },
+  { id: "P008", name: "Glacier Pro Shell Bib", price: 289, zone: "A3", category: "Apparel", image: "\ud83e\udde5", features: ["Waterproof", "Windproof", "4 Season"] },
+  { id: "P009", name: "Trailfox GTX Hiking Boot", price: 229, zone: "B1", category: "Footwear", image: "\ud83e\udd7e", features: ["Waterproof", "Gore Tex", "3 Season"] },
+  { id: "P010", name: "Trailfox GTX Hiking Boot W", price: 229, zone: "B1", category: "Footwear", image: "\ud83e\udd7e", features: ["Waterproof", "Gore Tex", "3 Season"] },
+  { id: "P011", name: "Featherpath Trail Shoe", price: 139, zone: "B2", category: "Footwear", image: "\ud83d\udc5f", features: ["Lightweight", "Breathable", "Summer"] },
+  { id: "P012", name: "Granite Approach Shoe", price: 169, zone: "B3", category: "Footwear", image: "\ud83d\udc5f", features: ["Technical", "Grippy", "Summer"] },
+  { id: "P013", name: "Snowline Winter Boot", price: 259, zone: "B1", category: "Footwear", image: "\ud83e\udd7e", features: ["Waterproof", "Insulated", "4 Season"] },
+  { id: "P014", name: "Little Cub Kids Boot", price: 89, zone: "B4", category: "Footwear", image: "\ud83e\udd7e", features: ["Waterproof", "Kids", "Beginner"] },
+  { id: "P015", name: "Skyvault 2P Tent", price: 429, zone: "C1", category: "Gear", image: "\u26fa", features: ["3 Season", "Lightweight", "Waterproof"] },
+  { id: "P016", name: "Skyvault 3P Tent", price: 499, zone: "C1", category: "Gear", image: "\u26fa", features: ["3 Season", "Waterproof", "Unisex"] },
+  { id: "P017", name: "Basecamp 4 Family Tent", price: 349, zone: "C2", category: "Gear", image: "\u26fa", features: ["3 Season", "Waterproof", "Beginner"] },
+  { id: "P018", name: "Stormtarp Ultralight", price: 99, zone: "C3", category: "Gear", image: "\u26fa", features: ["Ultralight", "Waterproof", "Packable"] },
+  { id: "P019", name: "Highpass 4-Season Tent", price: 649, zone: "C1", category: "Gear", image: "\u26fa", features: ["4 Season", "Winter", "Waterproof"] },
+  { id: "P020", name: "Cirrus 0C Down Sleeping Bag", price: 329, zone: "D1", category: "Gear", image: "\ud83d\udecc", features: ["Down", "Insulated", "4 Season"] },
+  { id: "P021", name: "Cirrus 10C Down Sleeping Bag", price: 259, zone: "D1", category: "Gear", image: "\ud83d\udecc", features: ["Down", "Insulated", "3 Season"] },
+  { id: "P022", name: "Meadow Synthetic Bag", price: 149, zone: "D1", category: "Gear", image: "\ud83d\udecc", features: ["Synthetic", "Vegan", "3 Season"] },
+  { id: "P023", name: "Cloudbase Inflatable Mat", price: 129, zone: "D2", category: "Gear", image: "\ud83d\udecf\ufe0f", features: ["Lightweight", "Packable", "3 Season"] },
+  { id: "P024", name: "Groundrest Foam Mat", price: 39, zone: "D2", category: "Gear", image: "\ud83d\udecf\ufe0f", features: ["Lightweight", "Beginner", "Unisex"] },
+  { id: "P025", name: "Summit 45 Trekking Pack", price: 219, zone: "E1", category: "Gear", image: "\ud83c\udf92", features: ["Technical", "3 Season", "Unisex"] },
+  { id: "P026", name: "Summit 65 Expedition Pack", price: 279, zone: "E1", category: "Gear", image: "\ud83c\udf92", features: ["Technical", "4 Season", "Unisex"] },
+  { id: "P027", name: "Daybreak 22 Daypack", price: 89, zone: "E2", category: "Gear", image: "\ud83c\udf92", features: ["Lightweight", "Summer", "Beginner"] },
+  { id: "P028", name: "Featherlite 18 Packable Pack", price: 59, zone: "E2", category: "Gear", image: "\ud83c\udf92", features: ["Ultralight", "Packable", "Vegan"] },
+  { id: "P029", name: "Hauler 30 Vegan Pack", price: 129, zone: "E2", category: "Gear", image: "\ud83c\udf92", features: ["Vegan", "Recycled", "3 Season"] },
+  { id: "P030", name: "Merino Crew Base Layer", price: 89, zone: "F1", category: "Apparel", image: "\ud83d\udc55", features: ["Merino", "Breathable", "4 Season"] },
+  { id: "P031", name: "Merino Crew Base Layer W", price: 89, zone: "F1", category: "Apparel", image: "\ud83d\udc55", features: ["Merino", "Breathable", "4 Season"] },
+  { id: "P032", name: "Pulse Synthetic Base Tee", price: 49, zone: "F1", category: "Apparel", image: "\ud83d\udc55", features: ["Synthetic", "Vegan", "Breathable"] },
+  { id: "P033", name: "Hearth Grid Fleece", price: 109, zone: "F2", category: "Apparel", image: "\ud83e\udde5", features: ["Breathable", "Recycled", "3 Season"] },
+  { id: "P034", name: "Ridge Softshell Trouser", price: 139, zone: "F3", category: "Apparel", image: "\ud83d\udc56", features: ["Windproof", "Breathable", "3 Season"] },
+  { id: "P035", name: "Ridge Softshell Trouser W", price: 139, zone: "F3", category: "Apparel", image: "\ud83d\udc56", features: ["Windproof", "Breathable", "3 Season"] },
+  { id: "P036", name: "Trekker Zip-Off Pant", price: 99, zone: "F3", category: "Apparel", image: "\ud83d\udc56", features: ["Lightweight", "Summer", "Beginner"] },
+  { id: "P037", name: "Lumen 400 Headlamp", price: 59, zone: "G1", category: "Gear", image: "\ud83d\udd26", features: ["Lightweight", "Rechargeable", "Technical"] },
+  { id: "P038", name: "Lumen 800 Pro Headlamp", price: 99, zone: "G1", category: "Gear", image: "\ud83d\udd26", features: ["Rechargeable", "Technical", "4 Season"] },
+  { id: "P039", name: "Springwater 1L Bottle", price: 29, zone: "G2", category: "Accessories", image: "\ud83e\uddf4", features: ["Recycled", "Unisex"] },
+  { id: "P040", name: "Springwater Insulated 0.75L", price: 39, zone: "G2", category: "Accessories", image: "\ud83e\uddf4", features: ["Insulated", "Unisex"] },
+  { id: "P041", name: "Carbon Z Trekking Poles", price: 149, zone: "G3", category: "Gear", image: "\ud83e\udd62", features: ["Ultralight", "Technical", "Unisex"] },
+  { id: "P042", name: "Alu Trail Poles", price: 69, zone: "G3", category: "Gear", image: "\ud83e\udd62", features: ["Lightweight", "Beginner", "Unisex"] },
+  { id: "P043", name: "Summit Liner Gloves", price: 35, zone: "G4", category: "Apparel", image: "\ud83e\udde4", features: ["Lightweight", "Merino", "3 Season"] },
+  { id: "P044", name: "Glacier Insulated Gloves", price: 79, zone: "G4", category: "Apparel", image: "\ud83e\udde4", features: ["Insulated", "Waterproof", "Winter"] },
+  { id: "P045", name: "Trail Merino Socks", price: 24, zone: "G4", category: "Apparel", image: "\ud83e\udde6", features: ["Merino", "Breathable", "Unisex"] },
+  { id: "P046", name: "Pocket Stove Titanium", price: 89, zone: "G5", category: "Gear", image: "\ud83d\udd25", features: ["Ultralight", "Technical", "Unisex"] },
+  { id: "P047", name: "Sunshield Cap", price: 25, zone: "G4", category: "Apparel", image: "\ud83e\udde2", features: ["Lightweight", "Summer", "Recycled"] },
+  { id: "P048", name: "Trail Shoe", price: 139, zone: "B2", category: "Footwear", image: "\ud83d\udc5f", features: ["Demo Book", "Trail Running", "Lightweight"] },
+  { id: "P049", name: "Trail Shoe", price: 129, zone: "B2", category: "Footwear", image: "\ud83d\udc5f", features: ["Demo Book", "Trail Running", "Lightweight"] },
+  { id: "P050", name: "Trail Shoe", price: 149, zone: "B2", category: "Footwear", image: "\ud83d\udc5f", features: ["Demo Book", "Trail Running", "Breathable"] },
+  { id: "P051", name: "Mid Boot", price: 199, zone: "B1", category: "Footwear", image: "\ud83e\udd7e", features: ["Demo Book", "Waterproof", "Gore Tex"] },
+  { id: "P052", name: "Trail Shoe", price: 159, zone: "B2", category: "Footwear", image: "\ud83d\udc5f", features: ["Demo Book", "Grippy", "Technical"] },
+  { id: "P053", name: "Trail Shoe", price: 145, zone: "B2", category: "Footwear", image: "\ud83d\udc5f", features: ["Demo Book", "Trail Running", "Breathable"] },
+  { id: "P054", name: "Hiking Shoe", price: 169, zone: "B3", category: "Footwear", image: "\ud83d\udc5f", features: ["Demo Book", "Grippy", "Technical"] },
+  { id: "P055", name: "Trail Shoe", price: 139, zone: "B2", category: "Footwear", image: "\ud83d\udc5f", features: ["Demo Book", "Breathable", "Casual"] },
+  { id: "P056", name: "Trail Shoe", price: 129, zone: "B2", category: "Footwear", image: "\ud83d\udc5f", features: ["Demo Book", "Trail Running", "Lightweight"] },
+  { id: "P057", name: "wearit Socks", price: 19, zone: "G4", category: "Apparel", image: "\ud83e\udde6", features: ["Demo Book", "Merino", "Breathable"] },
+  { id: "P058", name: "wearit Socks", price: 16, zone: "G4", category: "Apparel", image: "\ud83e\udde6", features: ["Demo Book", "Trail Running", "Lightweight"] },
+  { id: "P059", name: "wearit Socks", price: 19, zone: "G4", category: "Apparel", image: "\ud83e\udde6", features: ["Demo Book", "Merino", "Breathable"] },
+  { id: "P060", name: "wearit Socks", price: 16, zone: "G4", category: "Apparel", image: "\ud83e\udde6", features: ["Demo Book", "Trail Running", "Lightweight"] },
+  { id: "P061", name: "wearit Socks", price: 18, zone: "G4", category: "Apparel", image: "\ud83e\udde6", features: ["Demo Book", "Breathable", "Summer"] },
+  { id: "P062", name: "wearit Socks", price: 24, zone: "G4", category: "Apparel", image: "\ud83e\udde6", features: ["Demo Book", "Merino", "Insulated"] },
+  { id: "P063", name: "wearit Socks", price: 17, zone: "G4", category: "Apparel", image: "\ud83e\udde6", features: ["Demo Book", "Breathable", "Lightweight"] },
+  { id: "P064", name: "wearit Socks", price: 18, zone: "G4", category: "Apparel", image: "\ud83e\udde6", features: ["Demo Book", "Breathable", "Summer"] },
+  { id: "P065", name: "wearit Socks", price: 22, zone: "G4", category: "Apparel", image: "\ud83e\udde6", features: ["Demo Book", "Merino", "Insulated"] },
+  { id: "P066", name: "wearit Socks", price: 17, zone: "G4", category: "Apparel", image: "\ud83e\udde6", features: ["Demo Book", "Trail Running", "Lightweight"] },
+  { id: "P067", name: "Knitted Hoodie Jumper", price: 40, zone: "F2", category: "Apparel", image: "\ud83e\udde5", features: ["Demo Book", "Casual", "Recycled"] },
+  { id: "P068", name: "3/4 Sleeve T-Shirt", price: 18, zone: "F1", category: "Apparel", image: "\ud83d\udc55", features: ["Demo Book", "Breathable", "Casual"] },
+  { id: "P069", name: "Short Sleeve Top V-Neck", price: 20, zone: "F1", category: "Apparel", image: "\ud83d\udc55", features: ["Demo Book", "Breathable", "Casual"] },
+];
+
+export const CATEGORIES = ["All", "Apparel", "Gear", "Footwear", "Accessories"] as const;

@@ -20,8 +20,11 @@ export default function NavBar() {
   return (
     <nav className="sticky top-0 z-40 bg-forest text-white shadow-md">
       <div className="mx-auto max-w-5xl px-4 py-3 flex items-center justify-between">
-        <NavLink to="/" className="text-lg font-bold tracking-tight">
-          ⛰ Summit Outfitters
+        <NavLink to="/" className="flex items-baseline gap-2">
+          <span className="text-lg font-bold tracking-tight">⛰ ScannedIt</span>
+          <span className="hidden text-xs font-medium text-forest-50/80 sm:inline">
+            Just Scan It.
+          </span>
         </NavLink>
         <div className="flex items-center gap-1">
           <NavLink to="/" className={linkClass} end>

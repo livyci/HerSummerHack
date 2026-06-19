@@ -37,23 +37,23 @@ export default function ProductCard({
 
   return (
     <div
-      className={`flex flex-col rounded-xl bg-white p-4 shadow-sm ${
-        discounted ? 'border-2 border-amber bg-amber/5' : 'border border-slate-bg'
+      className={`flex flex-col rounded-2xl bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow ${
+        discounted ? 'border border-amber' : 'border border-slate-bg'
       } ${isFavColor ? 'ring-2 ring-amber ring-offset-2' : ''}`}
     >
       <div className="flex items-start justify-between gap-2">
-        <h3 className="text-base font-bold text-gray-900 leading-tight">
+        <h3 className="text-base font-semibold text-gray-900 leading-tight">
           {product.name}
         </h3>
         <DiscountBadge pct={product.discount_pct} />
       </div>
 
-      <p className="mt-0.5 text-sm text-gray-500">
+      <p className="mt-1 text-sm text-gray-500">
         {product.brand} · {formatCategory(product.category)}
       </p>
       <p className="text-sm text-gray-500">{product.color}</p>
 
-      <div className="mt-2 flex items-baseline gap-2">
+      <div className="mt-3 flex items-baseline gap-2">
         {discounted ? (
           <>
             <span className="text-sm text-gray-400 line-through">
@@ -62,26 +62,26 @@ export default function ProductCard({
             <span className="text-lg font-bold text-amber-dark">CHF {final}</span>
           </>
         ) : (
-          <span className="text-lg font-bold text-forest">
+          <span className="text-lg font-bold text-gray-900">
             CHF {product.price_chf}
           </span>
         )}
       </div>
 
       {reasons && reasons.length > 0 && (
-        <div className="mt-2 flex flex-wrap gap-1.5">
+        <div className="mt-3 flex flex-wrap gap-1.5">
           {reasons.map((reason) => (
             <ReasonBadge key={`${reason.kind}-${reason.label}`} reason={reason} />
           ))}
         </div>
       )}
 
-      <p className="mt-2 text-sm text-gray-600">
+      <p className="mt-3 text-sm text-gray-500">
         📍 Zone {product.zone} ({product.zone_name}), Aisle {product.aisle}
       </p>
       <p className="text-sm text-gray-500">{product.stock_total} in stock</p>
 
-      <p className="mt-2 text-sm text-gray-600 line-clamp-2">
+      <p className="mt-3 text-sm text-gray-500 line-clamp-2">
         {product.description}
       </p>
 
@@ -103,7 +103,7 @@ export default function ProductCard({
         <button
           type="button"
           onClick={() => onUnmarkBought?.(product.product_id)}
-          className="mt-2 w-full rounded-xl bg-forest-50 px-4 py-2 text-sm font-semibold text-forest transition-colors hover:bg-forest hover:text-white"
+          className="mt-2 w-full rounded-xl bg-forest-50 px-4 py-2.5 text-sm font-semibold text-forest transition-colors hover:bg-forest hover:text-white"
         >
           ✓ Bought — tap to undo
         </button>
@@ -112,7 +112,7 @@ export default function ProductCard({
           <button
             type="button"
             onClick={() => onMarkBought(product.product_id)}
-            className="mt-2 w-full rounded-xl border border-forest px-4 py-2 text-sm font-semibold text-forest transition-colors hover:bg-forest hover:text-white"
+            className="mt-2 w-full rounded-xl border border-slate-bg px-4 py-2.5 text-sm font-semibold text-forest transition-colors hover:bg-forest hover:text-white"
           >
             Mark as bought
           </button>

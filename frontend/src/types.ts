@@ -33,6 +33,14 @@ export interface ScannedItem {
   scannedAt: number
 }
 
+/** A past Discover search: the question asked and the products recommended. */
+export interface SearchHistoryEntry {
+  id: string
+  prompt: string
+  productIds: string[]
+  at: number
+}
+
 /** Final price after discount, in CHF. */
 export function effectivePrice(p: Product): number {
   return Math.round(p.price_chf * (1 - p.discount_pct / 100) * 100) / 100

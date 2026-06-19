@@ -65,6 +65,12 @@ export interface RecommendationReason {
   kind: 'budget' | 'color' | 'brand' | 'discount' | 'tag-match' | 'in-stock-nearby'
 }
 
+/** A product paired with its computed relevance score, for ranked results. */
+export interface ScoredProduct {
+  product: Product
+  score: number
+}
+
 /** Final price after discount, in CHF. */
 export function effectivePrice(p: Product): number {
   return Math.round(p.price_chf * (1 - p.discount_pct / 100) * 100) / 100

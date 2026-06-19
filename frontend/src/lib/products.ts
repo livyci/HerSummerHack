@@ -4,6 +4,7 @@ import type {
   SearchFilters,
   UserPreferences,
   RecommendationReason,
+  ShoppingListItem,
 } from '../types'
 import { effectivePrice } from '../types'
 import { formatCategory } from './format'
@@ -17,6 +18,19 @@ export function getAllProducts(): Product[] {
 export function getByBarcode(code: string): Product | undefined {
   const trimmed = code.trim()
   return ALL.find((p) => p.product_code === trimmed)
+}
+
+/**
+ * Whether a scanned/looked-up product is already on the shopper's wishlist
+ * (their shopping list), matched by the reliable product_id. Returns false for
+ * an empty or undefined wishlist so the scanner degrades gracefully.
+ */
+export function doesMatchWishlist(
+  scannedItem: Product,
+  wishlist: ShoppingListItem[] | undefined | null,
+): boolean {
+  if (!wishlist || wishlist.length === 0) return false
+  return wishlist.some((item) => item.productId === scannedItem.product_id)
 }
 
 /** All SKUs (sizes/colors) that share a product_id. */

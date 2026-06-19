@@ -1,4 +1,10 @@
-import type { Product } from '../types'
+import type {
+  Product,
+  SearchFilters,
+  UserPreferences,
+  ScoredProduct,
+} from '../types'
+import { effectivePrice } from '../types'
 import { getUniqueProducts } from './products'
 import { formatCategory } from './format'
 
@@ -39,6 +45,79 @@ const W = {
   sameZone: 6, // sits in the same store zone — easy to grab together
   sameBrand: 5, // brand affinity
   onSale: 4, // nudge discounted stock
+}
+
+// Weights for scoring catalogue products against a Discover search. Tag overlap
+// is partial (points PER shared tag) rather than all-or-nothing, so results stay
+// loose and diverse. Category/colour add affinity; saved prefs only re-rank.
+const FILTER_WEIGHTS = {
+  tag: 10, // per overlapping query tag
+  category: 14, // candidate is in a requested category
+  color: 8, // candidate is a requested colour
+  favColor: 4, // personalisation: a favourite colour
+  prefBrand: 4, // personalisation: a preferred brand
+  inBudget: 3, // personalisation: within the saved budget
+  onSale: 2, // nudge discounted stock
+}
+
+/** Minimum relevance to a query before an item is shown (excludes noise). */
+const MIN_RELEVANCE = 1
+
+/**
+ * Score and rank catalogue products against the user's structured search using
+ * weighted relevance instead of an exact all-tags filter. Tag matching is
+ * partial (points per shared tag), category/colour add affinity, and saved
+ * preferences nudge the ranking. Price is the single hard cap. Items below the
+ * relevance threshold are dropped; the rest are sorted by score (then discount,
+ * then name). With no active categories/tags/colours, every in-budget product is
+ * returned, so the page still shows the full catalogue by default.
+ */
+export function recommendByFilters(
+  products: Product[],
+  filters: SearchFilters,
+  prefs?: UserPreferences,
+): ScoredProduct[] {
+  const priceMax = filters.priceMaxChf ?? prefs?.budgetMaxChf ?? null
+  const hasQuery =
+    filters.categories.length > 0 ||
+    filters.tags.length > 0 ||
+    filters.colors.length > 0
+
+  const scored: ScoredProduct[] = []
+  for (const p of products) {
+    if (priceMax !== null && effectivePrice(p) > priceMax) continue // hard cap
+
+    // Relevance to the explicit query (the loosened, partial-match part).
+    const tagOverlap = filters.tags.reduce(
+      (n, t) => (p.tags.includes(t) ? n + 1 : n),
+      0,
+    )
+    let relevance = tagOverlap * FILTER_WEIGHTS.tag
+    if (filters.categories.includes(p.category)) relevance += FILTER_WEIGHTS.category
+    if (filters.colors.includes(p.color)) relevance += FILTER_WEIGHTS.color
+
+    // With an active query, require some relevance; otherwise show everything.
+    if (hasQuery && relevance < MIN_RELEVANCE) continue
+
+    // Personalisation only re-ranks — it never lifts an item over the threshold.
+    let bonus = 0
+    if (prefs?.favoriteColors.includes(p.color)) bonus += FILTER_WEIGHTS.favColor
+    if (prefs?.preferredBrands.includes(p.brand)) bonus += FILTER_WEIGHTS.prefBrand
+    if (prefs?.budgetMaxChf != null && effectivePrice(p) <= prefs.budgetMaxChf) {
+      bonus += FILTER_WEIGHTS.inBudget
+    }
+    if (p.discount_pct > 0) bonus += FILTER_WEIGHTS.onSale
+
+    scored.push({ product: p, score: relevance + bonus })
+  }
+
+  scored.sort(
+    (a, b) =>
+      b.score - a.score ||
+      b.product.discount_pct - a.product.discount_pct ||
+      a.product.name.localeCompare(b.product.name),
+  )
+  return scored
 }
 
 export type RecReason = 'Pairs well' | 'Similar' | 'Related'

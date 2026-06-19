@@ -1,5 +1,6 @@
 import type { Product } from '../types'
 import { effectivePrice } from '../types'
+import { formatCategory } from '../lib/format'
 import DiscountBadge from './DiscountBadge'
 
 interface ProductCardProps {
@@ -26,7 +27,7 @@ export default function ProductCard({ product, onAdd, added }: ProductCardProps)
       </div>
 
       <p className="mt-0.5 text-sm text-gray-500">
-        {product.brand} · {product.category}
+        {product.brand} · {formatCategory(product.category)}
       </p>
       <p className="text-sm text-gray-500">{product.color}</p>
 

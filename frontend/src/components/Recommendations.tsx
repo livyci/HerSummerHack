@@ -26,8 +26,8 @@ export default function Recommendations({
   if (recs.length === 0) return null
 
   return (
-    <div className="mt-4 rounded-xl bg-white p-5 shadow-sm">
-      <h3 className="text-base font-bold text-gray-900">
+    <div className="mt-4 rounded-2xl border border-slate-bg bg-white p-5 shadow-sm">
+      <h3 className="text-base font-semibold text-gray-900">
         Recommended with this
         <span className="ml-2 text-xs font-normal text-gray-400">
           pairs well on the trail
@@ -40,10 +40,10 @@ export default function Recommendations({
           return (
             <div
               key={product.product_id}
-              className="flex flex-col rounded-xl border border-slate-bg p-3"
+              className="flex flex-col rounded-2xl border border-slate-bg bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow"
             >
               <span
-                className={`self-start rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${REASON_CLASS[reason]}`}
+                className={`self-start rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${REASON_CLASS[reason]}`}
               >
                 {reason}
               </span>
@@ -60,14 +60,14 @@ export default function Recommendations({
               </p>
 
               <div className="mt-auto flex items-center justify-between pt-2">
-                <span className="text-sm font-bold text-forest">
+                <span className="text-sm font-bold text-gray-900">
                   CHF {effectivePrice(product)}
                 </span>
                 <button
                   type="button"
                   disabled={added}
                   onClick={() => onAdd(product.product_id)}
-                  className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition-colors ${
+                  className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition-colors ${
                     added
                       ? 'bg-forest-50 text-forest cursor-default'
                       : 'bg-forest text-white hover:bg-forest-dark'

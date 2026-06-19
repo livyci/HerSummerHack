@@ -164,9 +164,9 @@ export default function DiscoverPage() {
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
       {/* Hero + free-text search (available before and after the first search) */}
-      <div className="rounded-xl bg-forest p-6 sm:p-8 shadow-md text-white">
+      <div className="rounded-2xl bg-gradient-to-br from-forest to-forest-dark p-8 sm:p-10 shadow-sm text-white">
         <div className="flex items-start justify-between gap-3">
-          <h1 className="text-2xl sm:text-3xl font-bold leading-tight">
+          <h1 className="text-2xl sm:text-3xl font-bold leading-tight tracking-tight text-white">
             Find your perfect gear
           </h1>
           <Link
@@ -176,18 +176,18 @@ export default function DiscoverPage() {
             📍 Store map
           </Link>
         </div>
-        <p className="mt-2 text-forest-50/90 text-sm sm:text-base">
+        <p className="mt-3 text-slate-100/80 text-sm sm:text-base">
           Describe your adventure — we'll turn it into filters you can fine-tune.
           Add another phrase any time to narrow things down.
         </p>
 
-        <div className="mt-5 flex flex-col gap-3">
+        <div className="mt-6 flex flex-col gap-3">
           <textarea
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             rows={3}
             placeholder="What are you looking for today? (e.g. 'I want to go hiking in wet weather for 3 days')"
-            className="w-full resize-none rounded-xl border border-white/20 bg-white p-4 text-sm text-gray-900 placeholder:text-gray-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-amber"
+            className="w-full resize-none rounded-2xl border border-white/10 bg-white p-4 text-sm text-gray-900 placeholder:text-gray-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-amber"
           />
           <div className="flex flex-wrap items-center gap-3">
             <button
@@ -213,7 +213,7 @@ export default function DiscoverPage() {
 
       {/* Error */}
       {error && (
-        <div className="mt-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
           {error}
         </div>
       )}
@@ -259,7 +259,7 @@ export default function DiscoverPage() {
 
       {/* Active filters + controls */}
       {engaged && (
-        <div className="mt-6 rounded-xl bg-white p-4 shadow-sm sm:p-5">
+        <div className="mt-6 rounded-2xl border border-slate-bg bg-white p-5 shadow-sm sm:p-6">
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-sm font-bold text-gray-900">Your filters</h2>
             <div className="flex items-center gap-3">
@@ -369,27 +369,27 @@ export default function DiscoverPage() {
       {/* Loading */}
       {loading && (
         <div className="mt-10 flex flex-col items-center justify-center gap-3 text-gray-600">
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-forest-50 border-t-forest" />
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-forest-50 border-t-forest shadow-sm" />
           <p className="text-sm font-medium">Reading your request…</p>
         </div>
       )}
 
       {/* Empty initial state */}
       {!engaged && !loading && (
-        <div className="mt-10 rounded-xl bg-white p-8 text-center shadow-sm">
-          <p className="text-lg font-semibold text-gray-800">
+        <div className="mt-10 rounded-2xl border border-slate-bg bg-white p-8 text-center shadow-sm">
+          <p className="text-lg font-semibold text-gray-900">
             Not sure where to start?
           </p>
           <p className="mt-1 text-sm text-gray-500">
             Try one of these to see how it works.
           </p>
-          <div className="mt-5 flex flex-wrap justify-center gap-2">
+          <div className="mt-6 flex flex-wrap justify-center gap-2">
             {EXAMPLE_PROMPTS.map((example) => (
               <button
                 key={example}
                 type="button"
                 onClick={() => setPrompt(example)}
-                className="rounded-full border border-forest-light/40 bg-forest-50 px-4 py-2 text-sm font-medium text-forest transition-colors hover:bg-forest hover:text-white"
+                className="rounded-full border border-slate-bg bg-forest-50 px-4 py-2 text-sm font-medium text-forest transition-colors hover:bg-forest hover:text-white"
               >
                 {example}
               </button>
@@ -402,7 +402,7 @@ export default function DiscoverPage() {
       {engaged && !loading && (
         <div className="mt-8">
           {results.length === 0 ? (
-            <div className="rounded-xl bg-white p-8 text-center text-gray-500 shadow-sm">
+            <div className="rounded-2xl border border-slate-bg bg-white p-8 text-center text-gray-500 shadow-sm">
               No gear matches these filters. Remove a chip or{' '}
               <button
                 type="button"
@@ -450,13 +450,13 @@ interface ChipProps {
 
 function Chip({ label, onRemove }: ChipProps) {
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full bg-forest-50 px-3 py-1.5 text-sm font-medium text-forest">
+    <span className="inline-flex items-center gap-1.5 rounded-full border border-forest-light/20 bg-forest-50 px-3 py-1.5 text-sm font-medium text-forest">
       {label}
       <button
         type="button"
         onClick={onRemove}
         aria-label={`Remove ${label}`}
-        className="text-forest/60 hover:text-forest"
+        className="text-forest/50 hover:text-forest"
       >
         ✕
       </button>

@@ -3,6 +3,7 @@ import { Routes, Route } from 'react-router-dom'
 import NavBar from './components/NavBar'
 import DiscoverPage from './pages/DiscoverPage'
 import ShoppingPage from './pages/ShoppingPage'
+import NavigatePage from './pages/NavigatePage'
 import InventoryPage from './pages/InventoryPage'
 import AdminPage from './pages/AdminPage'
 import AuthPage from './pages/AuthPage'
@@ -24,6 +25,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<DiscoverPage />} />
           <Route path="/shopping" element={<ShoppingPage />} />
+          <Route path="/navigate" element={<NavigatePage />} />
           <Route path="/inventory" element={<InventoryPage />} />
           <Route path="/admin" element={<AdminPage />} />
           <Route path="/auth" element={<AuthPage />} />

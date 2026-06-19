@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import type { SearchFilters } from '../types'
 import { parsePromptToFilters, MissingApiKeyError } from '../lib/claude'
 import {
@@ -134,9 +135,17 @@ export default function DiscoverPage() {
     <div className="max-w-6xl mx-auto px-4 py-8">
       {/* Hero + free-text search (available before and after the first search) */}
       <div className="rounded-xl bg-forest p-6 sm:p-8 shadow-md text-white">
-        <h1 className="text-2xl sm:text-3xl font-bold leading-tight">
-          Find your perfect gear
-        </h1>
+        <div className="flex items-start justify-between gap-3">
+          <h1 className="text-2xl sm:text-3xl font-bold leading-tight">
+            Find your perfect gear
+          </h1>
+          <Link
+            to="/navigate"
+            className="shrink-0 rounded-full bg-white/15 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-white/25"
+          >
+            📍 Store map
+          </Link>
+        </div>
         <p className="mt-2 text-forest-50/90 text-sm sm:text-base">
           Describe your adventure — we'll turn it into filters you can fine-tune.
           Add another phrase any time to narrow things down.

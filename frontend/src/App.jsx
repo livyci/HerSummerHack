@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import InventoryTab from './components/InventoryTab'
 import OverviewTab from './components/OverviewTab'
+import ScanTab from './components/ScanTab'
 import './App.css'
 
 const TABS = [
   { id: 'inventory', label: 'Store Inventory' },
+  { id: 'scan', label: 'Scan & Recommend' },
   { id: 'overview', label: 'Overview' },
 ]
 
@@ -37,7 +39,9 @@ export default function App() {
       </header>
 
       <main className="main">
-        {tab === 'inventory' ? <InventoryTab /> : <OverviewTab />}
+        {tab === 'inventory' && <InventoryTab />}
+        {tab === 'scan' && <ScanTab />}
+        {tab === 'overview' && <OverviewTab />}
       </main>
     </div>
   )

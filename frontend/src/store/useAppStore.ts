@@ -18,6 +18,7 @@ interface AppState {
   addToList: (productId: string) => void
   removeFromList: (productId: string) => void
   toggleChecked: (productId: string) => void
+  toggleBought: (productId: string) => void
   setSize: (productId: string, size: string) => void
   addScan: (productCode: string) => void
   addSearch: (prompt: string, productIds: string[]) => void
@@ -84,6 +85,28 @@ export const useAppStore = create<AppState>()(
             i.productId === productId ? { ...i, checked: !i.checked } : i,
           ),
         })),
+
+      // Crossing an item off = buying it. Optimistically flips the item's
+      // bought status (with a purchasedAt stamp) and delegates to the purchase
+      // actions, which sync to the backend and roll back on failure.
+      toggleBought: (productId) => {
+        const item = get().shoppingList.find((i) => i.productId === productId)
+        const nextBought = !item?.bought
+        set((state) => ({
+          shoppingList: state.shoppingList.map((i) =>
+            i.productId === productId
+              ? {
+                  ...i,
+                  checked: nextBought,
+                  bought: nextBought,
+                  purchasedAt: nextBought ? Date.now() : undefined,
+                }
+              : i,
+          ),
+        }))
+        if (nextBought) void get().markAsBought(productId)
+        else void get().unmarkBought(productId)
+      },
 
       setSize: (productId, size) =>
         set((state) => ({

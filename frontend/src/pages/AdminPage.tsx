@@ -15,9 +15,12 @@ import {
   getAllProducts,
   getUniqueProducts,
   getDiscounted,
+  getProductById,
 } from '../lib/products'
+import { effectivePrice } from '../types'
 import { suggestPromotions, MissingApiKeyError } from '../lib/claude'
 import { formatCategory } from '../lib/format'
+import { useAppStore } from '../store/useAppStore'
 
 const FOREST = '#2D6A4F'
 const AMBER = '#F4A261'
@@ -33,6 +36,32 @@ export default function AdminPage() {
   const all = useMemo(() => getAllProducts(), [])
   const unique = useMemo(() => getUniqueProducts(), [])
   const discounted = useMemo(() => getDiscounted(), [])
+
+  // ---- Live shelf activity (reacts to items crossed off as bought) ----
+  // Stable selectors return the same array reference until the data changes, so
+  // subscribing here re-renders on a purchase without looping.
+  const purchases = useAppStore((s) => s.purchases)
+  const shoppingList = useAppStore((s) => s.shoppingList)
+
+  const purchaseStats = useMemo(() => {
+    // Canonical bought set: backend-synced purchases ∪ list items crossed off.
+    const ids = new Set(purchases)
+    for (const i of shoppingList) if (i.bought) ids.add(i.productId)
+
+    let value = 0
+    for (const id of ids) {
+      const p = getProductById(id)
+      if (p) value += effectivePrice(p)
+    }
+    const inList = shoppingList.length
+    const boughtInList = shoppingList.filter((i) => i.bought).length
+    return {
+      itemsPurchased: ids.size,
+      purchaseValue: value,
+      conversion: inList > 0 ? Math.round((boughtInList / inList) * 100) : 0,
+      hasList: inList > 0,
+    }
+  }, [purchases, shoppingList])
 
   // ---- Summary cards ----
   const totalStockValue = useMemo(
@@ -190,6 +219,25 @@ export default function AdminPage() {
         <SummaryCard
           label="Items on Discount"
           value={discounted.length.toLocaleString('en-US')}
+        />
+      </div>
+
+      {/* Live shelf activity — updates as shoppers cross items off as bought */}
+      <h2 className="mt-8 mb-4 text-xl font-bold text-gray-900">
+        Live shelf activity
+      </h2>
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
+        <SummaryCard
+          label="Total Items Purchased"
+          value={purchaseStats.itemsPurchased.toLocaleString('en-US')}
+        />
+        <SummaryCard
+          label="Purchase Value"
+          value={formatChf(purchaseStats.purchaseValue)}
+        />
+        <SummaryCard
+          label="List → Bought Conversion"
+          value={purchaseStats.hasList ? `${purchaseStats.conversion}%` : '—'}
         />
       </div>
 

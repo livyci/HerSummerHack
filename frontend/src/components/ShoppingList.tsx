@@ -4,12 +4,8 @@ import { getProductById, getSizesForProduct } from '../lib/products'
 export default function ShoppingList() {
   const shoppingList = useAppStore((s) => s.shoppingList)
   const removeFromList = useAppStore((s) => s.removeFromList)
-  const toggleChecked = useAppStore((s) => s.toggleChecked)
+  const toggleBought = useAppStore((s) => s.toggleBought)
   const setSize = useAppStore((s) => s.setSize)
-  const token = useAppStore((s) => s.token)
-  const purchases = useAppStore((s) => s.purchases)
-  const markAsBought = useAppStore((s) => s.markAsBought)
-  const unmarkBought = useAppStore((s) => s.unmarkBought)
 
   if (shoppingList.length === 0) {
     return (
@@ -28,21 +24,23 @@ export default function ShoppingList() {
         if (!product) return null
 
         const sizes = getSizesForProduct(item.productId)
+        const bought = !!item.bought
 
         return (
           <li
             key={item.productId}
             className={`flex items-start gap-3 rounded-xl bg-white p-4 shadow-sm border border-slate-bg ${
-              item.checked ? 'opacity-60' : ''
+              bought ? 'opacity-60' : ''
             }`}
           >
+            {/* Crossing off marks the item as bought (syncs to the backend). */}
             <button
               type="button"
-              onClick={() => toggleChecked(item.productId)}
-              aria-pressed={item.checked}
-              aria-label={item.checked ? 'Uncheck item' : 'Check off item'}
+              onClick={() => toggleBought(item.productId)}
+              aria-pressed={bought}
+              aria-label={bought ? 'Mark as not bought' : 'Cross off as bought'}
               className={`mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full border-2 text-sm font-bold transition-colors ${
-                item.checked
+                bought
                   ? 'border-forest bg-forest text-white'
                   : 'border-gray-300 text-transparent hover:border-forest'
               }`}
@@ -53,48 +51,34 @@ export default function ShoppingList() {
             <div className="min-w-0 flex-1">
               <p
                 className={`font-semibold text-gray-900 ${
-                  item.checked ? 'line-through' : ''
+                  bought ? 'line-through' : ''
                 }`}
               >
                 {product.name}
               </p>
               <p className="text-sm text-gray-500">{product.brand}</p>
 
-              {sizes.length > 1 && (
-                <select
-                  value={item.selectedSize ?? ''}
-                  onChange={(e) => setSize(item.productId, e.target.value)}
-                  className="mt-2 rounded-lg border border-gray-300 px-2 py-1 text-sm focus:border-forest focus:outline-none"
-                >
-                  {sizes.map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </select>
+              {bought ? (
+                <p className="mt-1 text-xs font-semibold text-forest">✓ Bought</p>
+              ) : (
+                sizes.length > 1 && (
+                  <select
+                    value={item.selectedSize ?? ''}
+                    onChange={(e) => setSize(item.productId, e.target.value)}
+                    className="mt-2 rounded-lg border border-gray-300 px-2 py-1 text-sm focus:border-forest focus:outline-none"
+                  >
+                    {sizes.map((s) => (
+                      <option key={s} value={s}>
+                        {s}
+                      </option>
+                    ))}
+                  </select>
+                )
               )}
 
               <p className="mt-2 text-sm text-gray-600">
                 Find it in Zone {product.zone}, Aisle {product.aisle}
               </p>
-              {token &&
-                (purchases.includes(item.productId) ? (
-                  <button
-                    type="button"
-                    onClick={() => unmarkBought(item.productId)}
-                    className="mt-2 rounded-lg bg-forest-50 px-3 py-1.5 text-xs font-semibold text-forest transition-colors hover:bg-forest hover:text-white"
-                  >
-                    ✓ Bought — undo
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => markAsBought(item.productId)}
-                    className="mt-2 rounded-lg border border-forest px-3 py-1.5 text-xs font-semibold text-forest transition-colors hover:bg-forest hover:text-white"
-                  >
-                    Mark as bought
-                  </button>
-                ))}
             </div>
 
             <button

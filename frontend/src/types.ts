@@ -25,6 +25,10 @@ export interface ShoppingListItem {
   productId: string
   selectedSize?: string
   checked: boolean
+  /** Set when the shopper crosses the item off — i.e. has bought it. */
+  bought?: boolean
+  /** When the item was marked bought (ms epoch). */
+  purchasedAt?: number
   addedAt: number
 }
 
@@ -48,6 +52,16 @@ export interface SearchFilters {
   colors: string[]
   priceMaxChf: number | null
   freeText: string
+}
+
+/** A past search archived when the shopper starts a new one. */
+export interface SavedSearch {
+  id: string
+  /** Human-readable summary of the archived search. */
+  label: string
+  /** Full snapshot so the search can be restored exactly. */
+  filters: SearchFilters
+  at: number
 }
 
 /** A shopper's saved preferences (per account), used to personalise Discover. */

@@ -17,6 +17,7 @@ export default function ProductCard({
 }: ProductCardProps) {
   const discounted = product.discount_pct > 0
   const final = effectivePrice(product)
+  // Substring match is intentional: favourite "Teal" also highlights "Teal Stripe", "Teal Dot", etc.
   const isFavColor =
     !!favouriteColor &&
     product.color.toLowerCase().includes(favouriteColor.toLowerCase())

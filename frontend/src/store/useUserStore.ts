@@ -42,7 +42,7 @@ export const useUserStore = create<UserState>()(
           ),
         })),
     }),
-    { name: 'summit-user' },
+    { name: 'summit-user', version: 1 },
   ),
 )
 

@@ -1,12 +1,12 @@
-import productsRaw from '../data/products.json'
-import { formatCategory } from './inventory'
+import type { Product } from '../types'
+import { getUniqueProducts } from './products'
 
 /**
  * Cross-sell map: for a given category, which categories pair well with it on
  * a trip. This is the backbone of "recommend with this" — an alpine domain
  * model, not generic "people also bought".
  */
-const COMPLEMENTS = {
+const COMPLEMENTS: Record<string, string[]> = {
   tent: ['sleeping-bag', 'sleeping-mat', 'tarp', 'headlamp', 'stove'],
   tarp: ['tent', 'sleeping-mat', 'sleeping-bag'],
   'sleeping-bag': ['sleeping-mat', 'tent', 'headlamp'],
@@ -40,68 +40,34 @@ const W = {
   onSale: 4, // nudge discounted stock
 }
 
-let uniqueCache = null
+export type RecReason = 'Pairs well' | 'Similar' | 'Related'
 
-/** Collapse SKUs (size/colour variants) into one row per product_id. */
-export function getUniqueProducts() {
-  if (uniqueCache) return uniqueCache
-  const map = new Map()
-  for (const p of productsRaw) {
-    const existing = map.get(p.product_id)
-    if (existing) {
-      existing.stockTotal += p.stock_total
-      existing.stockFront += p.stock_front
-      existing.sizes.add(p.size)
-      continue
-    }
-    map.set(p.product_id, {
-      id: p.product_id,
-      code: p.product_code,
-      name: p.name,
-      brand: p.brand,
-      category: p.category,
-      categoryLabel: formatCategory(p.category),
-      color: p.color,
-      material: p.material,
-      price: p.price_chf,
-      discount: p.discount_pct,
-      tags: p.tags ?? [],
-      zone: p.zone,
-      zoneName: p.zone_name,
-      aisle: p.aisle,
-      stockTotal: p.stock_total,
-      stockFront: p.stock_front,
-      description: p.description,
-      sizes: new Set([p.size]),
-    })
-  }
-  uniqueCache = [...map.values()].map((p) => ({ ...p, sizes: [...p.sizes] }))
-  return uniqueCache
-}
-
-/** Look up the product a scanned barcode (product_code) belongs to. */
-export function findByBarcode(code) {
-  const sku = productsRaw.find((p) => String(p.product_code) === String(code).trim())
-  if (!sku) return null
-  return getUniqueProducts().find((p) => p.id === sku.product_id) ?? null
+export interface Recommendation {
+  product: Product
+  score: number
+  reason: RecReason
+  sharedTags: string[]
 }
 
 /**
  * Rank what to recommend alongside `anchor`. Returns the top items with a
  * `score` and a human `reason` explaining why each was chosen.
  */
-export function recommend(anchor, { limit = 6 } = {}) {
+export function recommend(
+  anchor: Product | null,
+  limit = 6,
+): Recommendation[] {
   if (!anchor) return []
   const complementCats = new Set(COMPLEMENTS[anchor.category] ?? [])
   const anchorTags = new Set(anchor.tags)
 
-  const scored = []
+  const scored: Recommendation[] = []
   for (const p of getUniqueProducts()) {
-    if (p.id === anchor.id) continue // never recommend the same product
-    if (p.stockTotal <= 0) continue // out of stock can't be picked
+    if (p.product_id === anchor.product_id) continue // never the same product
+    if (p.stock_total <= 0) continue // out of stock can't be picked
 
     let score = 0
-    let reason = 'Related'
+    let reason: RecReason = 'Related'
 
     if (complementCats.has(p.category)) {
       score += W.complement
@@ -115,18 +81,18 @@ export function recommend(anchor, { limit = 6 } = {}) {
     score += sharedTags.length * W.sharedTag
     if (p.zone === anchor.zone) score += W.sameZone
     if (p.brand === anchor.brand) score += W.sameBrand
-    if (p.discount > 0) score += W.onSale
+    if (p.discount_pct > 0) score += W.onSale
 
     if (score <= 0) continue
-    scored.push({ ...p, score, reason, sharedTags })
+    scored.push({ product: p, score, reason, sharedTags })
   }
 
   scored.sort(
     (a, b) =>
       b.score - a.score ||
-      b.discount - a.discount ||
-      b.stockTotal - a.stockTotal ||
-      a.name.localeCompare(b.name),
+      b.product.discount_pct - a.product.discount_pct ||
+      b.product.stock_total - a.product.stock_total ||
+      a.product.name.localeCompare(b.product.name),
   )
   return scored.slice(0, limit)
 }

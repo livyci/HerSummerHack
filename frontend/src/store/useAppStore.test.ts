@@ -65,6 +65,29 @@ describe('logout', () => {
   })
 })
 
+describe('loadPurchases', () => {
+  it('fetches and sets purchases when a token is present', async () => {
+    useAppStore.setState({ token: 't1' })
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+      jsonResponse({ product_ids: ['P1', 'P2'] }),
+    )
+
+    await useAppStore.getState().loadPurchases()
+
+    expect(useAppStore.getState().purchases).toEqual(['P1', 'P2'])
+  })
+
+  it('does NOT call fetch and leaves purchases empty when token is null', async () => {
+    useAppStore.setState({ token: null, purchases: [] })
+    const fetchSpy = vi.spyOn(globalThis, 'fetch')
+
+    await useAppStore.getState().loadPurchases()
+
+    expect(fetchSpy).not.toHaveBeenCalled()
+    expect(useAppStore.getState().purchases).toEqual([])
+  })
+})
+
 describe('markAsBought', () => {
   it('optimistically adds then keeps the id on success', async () => {
     useAppStore.setState({ token: 't1', username: 'amy' })

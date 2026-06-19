@@ -1,10 +1,31 @@
 import { useState } from 'react'
-import type { Product, SearchHistoryEntry } from '../types'
-import { discoverProducts, MissingApiKeyError } from '../lib/claude'
-import { getUniqueProducts, getProductById } from '../lib/products'
+import type { SearchFilters } from '../types'
+import { parsePromptToFilters, MissingApiKeyError } from '../lib/claude'
+import {
+  getUniqueProducts,
+  filterProducts,
+  explainRecommendation,
+  getAllTags,
+  getCategories,
+  getColors,
+} from '../lib/products'
+import { formatCategory } from '../lib/format'
 import { useAppStore } from '../store/useAppStore'
 import { useCurrentUser } from '../store/useUserStore'
 import ProductCard from '../components/ProductCard'
+
+const AVAILABLE_TAGS = getAllTags()
+const AVAILABLE_CATEGORIES = getCategories()
+const AVAILABLE_COLORS = getColors()
+const CATALOGUE = getUniqueProducts()
+
+const EMPTY_FILTERS: SearchFilters = {
+  categories: [],
+  tags: [],
+  colors: [],
+  priceMaxChf: null,
+  freeText: '',
+}
 
 const EXAMPLE_PROMPTS = [
   'I want to go hiking in wet weather for 3 days',
@@ -12,47 +33,46 @@ const EXAMPLE_PROMPTS = [
   'Warm layers for an alpine winter ascent',
 ]
 
-function timeAgo(ts: number): string {
-  const s = Math.floor((Date.now() - ts) / 1000)
-  if (s < 60) return 'just now'
-  const m = Math.floor(s / 60)
-  if (m < 60) return `${m}m ago`
-  const h = Math.floor(m / 60)
-  if (h < 24) return `${h}h ago`
-  return `${Math.floor(h / 24)}d ago`
+type FilterKind = 'categories' | 'tags' | 'colors'
+
+/** Union new filters into existing ones; newest budget wins if both set one. */
+function mergeFilters(base: SearchFilters, incoming: SearchFilters): SearchFilters {
+  const union = (a: string[], b: string[]) => Array.from(new Set([...a, ...b]))
+  return {
+    categories: union(base.categories, incoming.categories),
+    tags: union(base.tags, incoming.tags),
+    colors: union(base.colors, incoming.colors),
+    priceMaxChf: incoming.priceMaxChf ?? base.priceMaxChf,
+    freeText: incoming.freeText || base.freeText,
+  }
 }
 
 export default function DiscoverPage() {
-  const [prompt, setPrompt] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [results, setResults] = useState<Product[]>([])
-  const [searched, setSearched] = useState(false)
-
+  const preferences = useCurrentUser().prefs
   const addToList = useAppStore((s) => s.addToList)
   const shoppingList = useAppStore((s) => s.shoppingList)
-  const current = useCurrentUser()
-  const searchHistory = useAppStore((s) => s.searchHistory)
-  const addSearch = useAppStore((s) => s.addSearch)
-  const clearSearchHistory = useAppStore((s) => s.clearSearchHistory)
 
-  function restoreSearch(entry: SearchHistoryEntry) {
-    if (loading) return
-    const products = entry.productIds
-      .map((id) => getProductById(id))
-      .filter((p): p is Product => p !== undefined)
-    setPrompt(entry.prompt)
-    setError(null)
-    if (products.length > 0) {
-      setSearched(true)
-      setResults(products)
-    } else {
-      // No saved recommendations (e.g. the AI call hadn't succeeded yet) —
-      // just refill the box so the user can run the search again.
-      setSearched(false)
-      setResults([])
-    }
-  }
+  const [prompt, setPrompt] = useState('')
+  const [filters, setFilters] = useState<SearchFilters>(EMPTY_FILTERS)
+  const [engaged, setEngaged] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [showAddFilter, setShowAddFilter] = useState(false)
+
+  // Pure, synchronous — recomputed on every render, no AI call.
+  const results = engaged
+    ? filterProducts(CATALOGUE, filters, preferences)
+    : []
+
+  const activeCount =
+    filters.categories.length +
+    filters.tags.length +
+    filters.colors.length +
+    (filters.priceMaxChf !== null ? 1 : 0)
+
+  // Soft budget from preferences applies only when no explicit price filter.
+  const softBudget =
+    filters.priceMaxChf === null ? preferences.budgetMaxChf : null
 
   async function handleSubmit() {
     const trimmed = prompt.trim()
@@ -60,55 +80,57 @@ export default function DiscoverPage() {
 
     setLoading(true)
     setError(null)
-    setSearched(true)
-
-    // Record the question immediately so it shows in history regardless of
-    // whether the AI call succeeds; recommendations are filled in on success.
-    addSearch(trimmed, [])
-
     try {
-      const ids = await discoverProducts(trimmed, getUniqueProducts(), current.prefs)
-      const products = ids
-        .map((id) => getProductById(id))
-        .filter((p): p is Product => p !== undefined)
-
-      // Stable sort: discounted items first, otherwise preserve Claude's order.
-      const sorted = products
-        .map((p, index) => ({ p, index }))
-        .sort((a, b) => {
-          const aDisc = a.p.discount_pct > 0 ? 0 : 1
-          const bDisc = b.p.discount_pct > 0 ? 0 : 1
-          if (aDisc !== bDisc) return aDisc - bDisc
-          return a.index - b.index
-        })
-        .map((entry) => entry.p)
-
-      setResults(sorted)
-      if (sorted.length > 0) {
-        addSearch(trimmed, sorted.map((p) => p.product_id))
-      }
+      const parsed = await parsePromptToFilters(
+        trimmed,
+        AVAILABLE_TAGS,
+        AVAILABLE_CATEGORIES,
+        AVAILABLE_COLORS,
+      )
+      setFilters((prev) => mergeFilters(prev, parsed))
+      setEngaged(true)
+      setPrompt('')
     } catch (err) {
       if (err instanceof MissingApiKeyError) {
         setError(err.message)
       } else {
-        setError('Something went wrong calling the AI. Please try again.')
+        setError('Something went wrong reading your request. Please try again.')
       }
-      setResults([])
     } finally {
       setLoading(false)
     }
   }
 
+  function addFilterValue(kind: FilterKind, value: string) {
+    if (!value) return
+    setFilters((prev) => ({
+      ...prev,
+      [kind]: Array.from(new Set([...prev[kind], value])),
+    }))
+    setEngaged(true)
+  }
+
+  function removeFilterValue(kind: FilterKind, value: string) {
+    setFilters((prev) => ({
+      ...prev,
+      [kind]: prev[kind].filter((v) => v !== value),
+    }))
+  }
+
+  function clearAll() {
+    setFilters(EMPTY_FILTERS)
+  }
+
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
-      {/* Hero */}
+      {/* Hero + free-text search (available before and after the first search) */}
       <div className="rounded-xl bg-forest p-6 sm:p-8 shadow-md text-white">
         <h1 className="text-2xl sm:text-3xl font-bold leading-tight">
           Find your perfect gear
         </h1>
         <p className="mt-2 text-forest-50/90 text-sm sm:text-base">
-          Tell us about your adventure and let our AI advisor pick the right
-          equipment before you even reach the store.
+          Describe your adventure — we'll turn it into filters you can fine-tune.
+          Add another phrase any time to narrow things down.
         </p>
 
         <div className="mt-5 flex flex-col gap-3">
@@ -125,54 +147,124 @@ export default function DiscoverPage() {
             disabled={loading || prompt.trim().length === 0}
             className="self-start rounded-xl bg-amber px-6 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-amber-dark disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {loading ? 'Searching…' : 'Find for me'}
+            {loading ? 'Reading…' : engaged ? 'Add to search' : 'Find for me'}
           </button>
         </div>
       </div>
 
-      {/* Recent searches */}
-      {searchHistory.length > 0 && (
+      {/* Error */}
+      {error && (
+        <div className="mt-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+          {error}
+        </div>
+      )}
+
+      {/* Active filters + controls */}
+      {engaged && (
         <div className="mt-6 rounded-xl bg-white p-4 shadow-sm sm:p-5">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-bold text-gray-900">
-              Recent searches
-            </h2>
-            <button
-              type="button"
-              onClick={clearSearchHistory}
-              className="text-xs font-semibold text-forest hover:underline"
-            >
-              Clear
-            </button>
-          </div>
-          <ul className="mt-2 divide-y divide-slate-bg">
-            {searchHistory.map((entry) => (
-              <li key={entry.id}>
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-sm font-bold text-gray-900">Your filters</h2>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setShowAddFilter((v) => !v)}
+                className="text-xs font-semibold text-forest hover:underline"
+              >
+                + Add filter
+              </button>
+              {activeCount > 0 && (
                 <button
                   type="button"
-                  onClick={() => restoreSearch(entry)}
-                  className="-mx-2 flex w-full items-center justify-between gap-3 rounded-lg px-2 py-2.5 text-left transition-colors hover:bg-forest-50"
+                  onClick={clearAll}
+                  className="text-xs font-semibold text-gray-400 hover:text-gray-600 hover:underline"
                 >
-                  <span className="min-w-0">
-                    <span className="block truncate text-sm font-medium text-gray-800">
-                      {entry.prompt}
-                    </span>
-                    <span className="text-xs text-gray-400">
-                      {entry.productIds.length > 0
-                        ? `${entry.productIds.length} recommendation${
-                            entry.productIds.length === 1 ? '' : 's'
-                          }`
-                        : 'saved'}{' '}
-                      · {timeAgo(entry.at)}
-                    </span>
-                  </span>
-                  <span className="shrink-0 text-xs font-semibold text-forest">
-                    View →
-                  </span>
+                  Clear all filters
                 </button>
-              </li>
-            ))}
-          </ul>
+              )}
+            </div>
+          </div>
+
+          {/* Chips */}
+          {activeCount === 0 ? (
+            <p className="mt-3 text-sm text-gray-500">
+              No filters — showing the full catalogue. Add a phrase above or a
+              filter to narrow down.
+            </p>
+          ) : (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {filters.categories.map((c) => (
+                <Chip
+                  key={`cat-${c}`}
+                  label={formatCategory(c)}
+                  onRemove={() => removeFilterValue('categories', c)}
+                />
+              ))}
+              {filters.tags.map((t) => (
+                <Chip
+                  key={`tag-${t}`}
+                  label={t}
+                  onRemove={() => removeFilterValue('tags', t)}
+                />
+              ))}
+              {filters.colors.map((c) => (
+                <Chip
+                  key={`color-${c}`}
+                  label={c}
+                  onRemove={() => removeFilterValue('colors', c)}
+                />
+              ))}
+              {filters.priceMaxChf !== null && (
+                <Chip
+                  label={`≤ CHF ${filters.priceMaxChf}`}
+                  onRemove={() =>
+                    setFilters((prev) => ({ ...prev, priceMaxChf: null }))
+                  }
+                />
+              )}
+            </div>
+          )}
+
+          {/* Unmapped wording (display only) */}
+          {filters.freeText && (
+            <p className="mt-3 text-xs text-gray-400">
+              Couldn't map to a filter: "{filters.freeText}"
+            </p>
+          )}
+
+          {/* Soft budget note */}
+          {softBudget !== null && (
+            <p className="mt-2 text-xs text-gray-400">
+              Showing items within your CHF {softBudget} budget (from your
+              preferences).
+            </p>
+          )}
+
+          {/* Add-filter panel */}
+          {showAddFilter && (
+            <div className="mt-4 grid grid-cols-1 gap-3 border-t border-slate-bg pt-4 sm:grid-cols-3">
+              <AddFilterSelect
+                label="Category"
+                placeholder="Add category…"
+                options={AVAILABLE_CATEGORIES.map((c) => ({
+                  value: c,
+                  label: formatCategory(c),
+                }))}
+                onPick={(v) => addFilterValue('categories', v)}
+              />
+              <AddFilterSelect
+                label="Tag"
+                placeholder="Add tag…"
+                options={AVAILABLE_TAGS.map((t) => ({ value: t, label: t }))}
+                onPick={(v) => addFilterValue('tags', v)}
+              />
+              <AddFilterSelect
+                label="Colour"
+                placeholder="Add colour…"
+                options={AVAILABLE_COLORS.map((c) => ({ value: c, label: c }))}
+                onPick={(v) => addFilterValue('colors', v)}
+              />
+            </div>
+          )}
         </div>
       )}
 
@@ -180,19 +272,12 @@ export default function DiscoverPage() {
       {loading && (
         <div className="mt-10 flex flex-col items-center justify-center gap-3 text-gray-600">
           <div className="h-10 w-10 animate-spin rounded-full border-4 border-forest-50 border-t-forest" />
-          <p className="text-sm font-medium">Finding the best gear for you…</p>
-        </div>
-      )}
-
-      {/* Error */}
-      {!loading && error && (
-        <div className="mt-8 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-          {error}
+          <p className="text-sm font-medium">Reading your request…</p>
         </div>
       )}
 
       {/* Empty initial state */}
-      {!loading && !error && !searched && (
+      {!engaged && !loading && (
         <div className="mt-10 rounded-xl bg-white p-8 text-center shadow-sm">
           <p className="text-lg font-semibold text-gray-800">
             Not sure where to start?
@@ -215,34 +300,100 @@ export default function DiscoverPage() {
         </div>
       )}
 
-      {/* No results after a search */}
-      {!loading && !error && searched && results.length === 0 && (
-        <div className="mt-10 rounded-xl bg-white p-8 text-center text-gray-500 shadow-sm">
-          No matching gear found. Try describing your trip differently.
-        </div>
-      )}
-
       {/* Results */}
-      {!loading && results.length > 0 && (
+      {engaged && !loading && (
         <div className="mt-8">
-          <h2 className="mb-4 text-lg font-bold text-gray-900">
-            {results.length} recommendation{results.length === 1 ? '' : 's'} for you
-          </h2>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {results.map((product) => (
-              <ProductCard
-                key={product.product_id}
-                product={product}
-                onAdd={addToList}
-                added={shoppingList.some(
-                  (i) => i.productId === product.product_id,
-                )}
-                favouriteColor={current.prefs.favouriteColor}
-              />
-            ))}
-          </div>
+          {results.length === 0 ? (
+            <div className="rounded-xl bg-white p-8 text-center text-gray-500 shadow-sm">
+              No gear matches these filters. Remove a chip or{' '}
+              <button
+                type="button"
+                onClick={clearAll}
+                className="font-semibold text-forest hover:underline"
+              >
+                clear all filters
+              </button>
+              .
+            </div>
+          ) : (
+            <>
+              <h2 className="mb-4 text-lg font-bold text-gray-900">
+                {results.length} match{results.length === 1 ? '' : 'es'}
+              </h2>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                {results.map((product) => (
+                  <ProductCard
+                    key={product.product_id}
+                    product={product}
+                    onAdd={addToList}
+                    added={shoppingList.some(
+                      (i) => i.productId === product.product_id,
+                    )}
+                    reasons={explainRecommendation(product, filters, preferences)}
+                    favoriteColors={preferences.favoriteColors}
+                  />
+                ))}
+              </div>
+            </>
+          )}
         </div>
       )}
     </div>
+  )
+}
+
+interface ChipProps {
+  label: string
+  onRemove: () => void
+}
+
+function Chip({ label, onRemove }: ChipProps) {
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-forest-50 px-3 py-1.5 text-sm font-medium text-forest">
+      {label}
+      <button
+        type="button"
+        onClick={onRemove}
+        aria-label={`Remove ${label}`}
+        className="text-forest/60 hover:text-forest"
+      >
+        ✕
+      </button>
+    </span>
+  )
+}
+
+interface AddFilterSelectProps {
+  label: string
+  placeholder: string
+  options: { value: string; label: string }[]
+  onPick: (value: string) => void
+}
+
+function AddFilterSelect({
+  label,
+  placeholder,
+  options,
+  onPick,
+}: AddFilterSelectProps) {
+  return (
+    <label className="text-sm">
+      <span className="mb-1 block font-medium text-gray-600">{label}</span>
+      <select
+        value=""
+        onChange={(e) => {
+          onPick(e.target.value)
+          e.target.value = ''
+        }}
+        className="w-full rounded-xl border border-slate-bg bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-forest"
+      >
+        <option value="">{placeholder}</option>
+        {options.map((opt) => (
+          <option key={opt.value} value={opt.value}>
+            {opt.label}
+          </option>
+        ))}
+      </select>
+    </label>
   )
 }

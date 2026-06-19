@@ -1,27 +1,33 @@
-import type { Product } from '../types'
+import type { Product, RecommendationReason } from '../types'
 import { effectivePrice } from '../types'
 import { formatCategory } from '../lib/format'
 import DiscountBadge from './DiscountBadge'
+import ReasonBadge from './ReasonBadge'
 
 interface ProductCardProps {
   product: Product
   onAdd?: (productId: string) => void
   added?: boolean
-  favouriteColor?: string
+  reasons?: RecommendationReason[]
+  favoriteColors?: string[]
 }
 
 export default function ProductCard({
   product,
   onAdd,
   added,
-  favouriteColor,
+  reasons,
+  favoriteColors,
 }: ProductCardProps) {
   const discounted = product.discount_pct > 0
   const final = effectivePrice(product)
-  // Substring match is intentional: favourite "Teal" also highlights "Teal Stripe", "Teal Dot", etc.
+  // Substring match is intentional: favourite "Teal" also highlights
+  // "Teal Stripe", "Teal Dot", etc.
   const isFavColor =
-    !!favouriteColor &&
-    product.color.toLowerCase().includes(favouriteColor.toLowerCase())
+    !!favoriteColors &&
+    favoriteColors.some((fc) =>
+      product.color.toLowerCase().includes(fc.toLowerCase()),
+    )
 
   return (
     <div
@@ -39,14 +45,7 @@ export default function ProductCard({
       <p className="mt-0.5 text-sm text-gray-500">
         {product.brand} · {formatCategory(product.category)}
       </p>
-      <p className="text-sm text-gray-500">
-        {product.color}
-        {isFavColor && (
-          <span className="ml-2 rounded-full bg-amber/15 px-2 py-0.5 text-xs font-semibold text-amber-dark">
-            ♥ your colour
-          </span>
-        )}
-      </p>
+      <p className="text-sm text-gray-500">{product.color}</p>
 
       <div className="mt-2 flex items-baseline gap-2">
         {discounted ? (
@@ -54,9 +53,7 @@ export default function ProductCard({
             <span className="text-sm text-gray-400 line-through">
               CHF {product.price_chf}
             </span>
-            <span className="text-lg font-bold text-amber-dark">
-              CHF {final}
-            </span>
+            <span className="text-lg font-bold text-amber-dark">CHF {final}</span>
           </>
         ) : (
           <span className="text-lg font-bold text-forest">
@@ -64,6 +61,14 @@ export default function ProductCard({
           </span>
         )}
       </div>
+
+      {reasons && reasons.length > 0 && (
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {reasons.map((reason) => (
+            <ReasonBadge key={`${reason.kind}-${reason.label}`} reason={reason} />
+          ))}
+        </div>
+      )}
 
       <p className="mt-2 text-sm text-gray-600">
         📍 Zone {product.zone} ({product.zone_name}), Aisle {product.aisle}

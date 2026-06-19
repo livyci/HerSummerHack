@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { ShoppingListItem, ScannedItem, SearchHistoryEntry } from '../types'
-import { getSizesForProduct } from '../lib/products'
+import { getSizesForProduct, getProductById } from '../lib/products'
 import { getCurrentPrefs } from './useUserStore'
 
 const MAX_SEARCH_HISTORY = 12
@@ -39,7 +39,11 @@ export const useAppStore = create<AppState>()(
             return state
           }
           const sizes = getSizesForProduct(productId)
-          const preferred = getCurrentPrefs().size
+          // Default to the active account's preferred size for this category.
+          const product = getProductById(productId)
+          const preferred = product
+            ? getCurrentPrefs().sizesByCategory[product.category]
+            : undefined
           const selectedSize =
             preferred && sizes.includes(preferred) ? preferred : sizes[0]
           const item: ShoppingListItem = {
@@ -104,8 +108,12 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: 'summit-smart-store',
-      // Persist only the search history across reloads.
-      partialize: (state) => ({ searchHistory: state.searchHistory }),
+      // Persist the cart, scan log, and search history across reloads.
+      partialize: (state) => ({
+        shoppingList: state.shoppingList,
+        scannedHistory: state.scannedHistory,
+        searchHistory: state.searchHistory,
+      }),
     },
   ),
 )

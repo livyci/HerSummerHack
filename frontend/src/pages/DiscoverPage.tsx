@@ -13,20 +13,13 @@ import {
 import { formatCategory } from '../lib/format'
 import { useAppStore } from '../store/useAppStore'
 import { usePreferencesStore } from '../store/usePreferencesStore'
+import { useSearchStore, EMPTY_FILTERS, hasActiveFilters } from '../store/useSearchStore'
 import ProductCard from '../components/ProductCard'
 
 const AVAILABLE_TAGS = getAllTags()
 const AVAILABLE_CATEGORIES = getCategories()
 const AVAILABLE_COLORS = getColors()
 const CATALOGUE = getUniqueProducts()
-
-const EMPTY_FILTERS: SearchFilters = {
-  categories: [],
-  tags: [],
-  colors: [],
-  priceMaxChf: null,
-  freeText: '',
-}
 
 const EXAMPLE_PROMPTS = [
   'I want to go hiking in wet weather for 3 days',
@@ -55,9 +48,15 @@ export default function DiscoverPage() {
   const addToList = useAppStore((s) => s.addToList)
   const shoppingList = useAppStore((s) => s.shoppingList)
 
+  // Filters live in a shared store so the Shopping page can compare scans
+  // against the same search the shopper set here.
+  const filters = useSearchStore((s) => s.filters)
+  const setFilters = useSearchStore((s) => s.setFilters)
+
   const [prompt, setPrompt] = useState('')
-  const [filters, setFilters] = useState<SearchFilters>(EMPTY_FILTERS)
-  const [engaged, setEngaged] = useState(false)
+  const [engaged, setEngaged] = useState(() =>
+    hasActiveFilters(useSearchStore.getState().filters),
+  )
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showAddFilter, setShowAddFilter] = useState(false)

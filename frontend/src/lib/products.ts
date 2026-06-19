@@ -6,6 +6,7 @@ import type {
   RecommendationReason,
 } from '../types'
 import { effectivePrice } from '../types'
+import { formatCategory } from './format'
 
 const ALL: Product[] = rawData as Product[]
 
@@ -131,6 +132,93 @@ export function explainRecommendation(
     reasons.push({ kind: 'in-stock-nearby', label: 'On the shelf now' })
   }
   return reasons
+}
+
+/** The verdict for a scanned product against the active Discover filters. */
+export interface ScanMatchResult {
+  matches: boolean
+  /** Populated when `matches` is true — reuses the positive recommendation reasons. */
+  reasons: RecommendationReason[]
+  /** Populated when `matches` is false — the specific constraint(s) the product failed. */
+  mismatches: { label: string; kind: 'category' | 'tag' | 'color' | 'price' }[]
+}
+
+/**
+ * Compare a scanned product against the active search filters and explain why
+ * it does or doesn't fit. Pure and synchronous — no AI. Match status reuses the
+ * real `filterProducts` rules so the verdict can never drift from the filtering
+ * the shopper sees on Discover.
+ *
+ * With no active filters there is nothing to compare against, so it returns a
+ * neutral `matches: true` with empty reasons and mismatches.
+ */
+export function explainScanMatch(
+  product: Product,
+  filters: SearchFilters,
+  prefs?: UserPreferences,
+): ScanMatchResult {
+  const noActiveFilters =
+    filters.categories.length === 0 &&
+    filters.tags.length === 0 &&
+    filters.colors.length === 0 &&
+    filters.priceMaxChf === null
+
+  if (noActiveFilters) {
+    return { matches: true, reasons: [], mismatches: [] }
+  }
+
+  // Reuse the real filter so match status stays consistent by construction.
+  const matches = filterProducts([product], filters, prefs).length === 1
+  if (matches) {
+    return {
+      matches: true,
+      reasons: explainRecommendation(product, filters, prefs),
+      mismatches: [],
+    }
+  }
+
+  const mismatches: ScanMatchResult['mismatches'] = []
+
+  // Category — filterProducts matches ANY of the requested categories.
+  if (
+    filters.categories.length > 0 &&
+    !filters.categories.includes(product.category)
+  ) {
+    const wanted = filters.categories.map(formatCategory).join(' or ')
+    mismatches.push({
+      kind: 'category',
+      label: `You're looking for ${wanted}, this is a ${formatCategory(product.category)}`,
+    })
+  }
+
+  // Tags — filterProducts requires ALL requested tags to be present.
+  if (filters.tags.length > 0) {
+    const missing = filters.tags.filter((t) => !product.tags.includes(t))
+    if (missing.length > 0) {
+      mismatches.push({ kind: 'tag', label: `Not marked ${missing.join(', ')}` })
+    }
+  }
+
+  // Colour — filterProducts matches ANY of the requested colours.
+  if (filters.colors.length > 0 && !filters.colors.includes(product.color)) {
+    mismatches.push({
+      kind: 'color',
+      label: `Available in ${product.color}, you wanted ${filters.colors.join(' or ')}`,
+    })
+  }
+
+  // Price — capped by the explicit filter, else the saved budget (matches filterProducts).
+  const priceMax = filters.priceMaxChf ?? prefs?.budgetMaxChf ?? null
+  const price = effectivePrice(product)
+  if (priceMax !== null && price > priceMax) {
+    const over = Math.round((price - priceMax) * 100) / 100
+    mismatches.push({
+      kind: 'price',
+      label: `CHF ${over} over your budget of CHF ${priceMax}`,
+    })
+  }
+
+  return { matches: false, reasons: [], mismatches }
 }
 
 /** All distinct product colours in the catalogue, sorted. */

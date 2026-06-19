@@ -1,14 +1,22 @@
 import { useState } from 'react'
 import type { Product } from '../types'
 import { effectivePrice } from '../types'
-import { getByBarcode, getProductById } from '../lib/products'
+import {
+  getByBarcode,
+  getProductById,
+  explainScanMatch,
+  type ScanMatchResult,
+} from '../lib/products'
 import { formatCategory } from '../lib/format'
 import { useAppStore } from '../store/useAppStore'
+import { useSearchStore, hasActiveFilters } from '../store/useSearchStore'
+import { usePreferencesStore } from '../store/usePreferencesStore'
 import ScanInput from '../components/ScanInput'
 import ShoppingList from '../components/ShoppingList'
 import Recommendations from '../components/Recommendations'
 import CompareModal from '../components/CompareModal'
 import DiscountBadge from '../components/DiscountBadge'
+import ReasonBadge from '../components/ReasonBadge'
 
 type MobileTab = 'list' | 'scanner'
 
@@ -21,6 +29,8 @@ export default function ShoppingPage() {
   const addToList = useAppStore((s) => s.addToList)
   const addScan = useAppStore((s) => s.addScan)
   const shoppingList = useAppStore((s) => s.shoppingList)
+  const filters = useSearchStore((s) => s.filters)
+  const preferences = usePreferencesStore((s) => s.preferences)
 
   const [tab, setTab] = useState<MobileTab>('list')
   const [scanned, setScanned] = useState<Product | null>(null)
@@ -57,6 +67,12 @@ export default function ShoppingPage() {
 
   const isAdded = (productId: string) =>
     shoppingList.some((i) => i.productId === productId)
+
+  // Does the scanned item fit the search the shopper set on Discover? Pure,
+  // recomputed on render so it always reflects the current filters.
+  const scanMatch: ScanMatchResult | null = scanned
+    ? explainScanMatch(scanned, filters, preferences)
+    : null
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
@@ -176,6 +192,13 @@ export default function ShoppingPage() {
                 </button>
               </div>
 
+              {scanMatch && (
+                <ScanMatchCallout
+                  result={scanMatch}
+                  hasFilters={hasActiveFilters(filters)}
+                />
+              )}
+
               <Recommendations
                 anchor={scanned}
                 onAdd={addToList}
@@ -201,6 +224,64 @@ export default function ShoppingPage() {
           onClose={() => setCompareTarget(null)}
         />
       )}
+    </div>
+  )
+}
+
+interface ScanMatchCalloutProps {
+  result: ScanMatchResult
+  hasFilters: boolean
+}
+
+/**
+ * Explains how a scanned product relates to the active Discover search:
+ * a neutral note when there's no search, positive reason badges on a match,
+ * or a muted amber callout listing the specific reasons it doesn't fit.
+ */
+function ScanMatchCallout({ result, hasFilters }: ScanMatchCalloutProps) {
+  if (!hasFilters) {
+    return (
+      <div className="mt-3 rounded-xl border border-slate-bg bg-slate-bg/40 p-3 text-sm text-gray-500">
+        No active search to compare against — search on{' '}
+        <span className="font-semibold text-forest">Discover</span> to see how a
+        scanned item fits what you're looking for.
+      </div>
+    )
+  }
+
+  if (result.matches) {
+    return (
+      <div className="mt-3 rounded-xl border border-forest-light/40 bg-forest-50 p-3">
+        <p className="text-sm font-semibold text-forest">
+          ✓ Matches what you searched for
+        </p>
+        {result.reasons.length > 0 && (
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {result.reasons.map((r) => (
+              <ReasonBadge key={`${r.kind}-${r.label}`} reason={r} />
+            ))}
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  return (
+    <div className="mt-3 rounded-xl border border-amber/40 bg-amber/10 p-3">
+      <p className="text-sm font-semibold text-amber-dark">
+        Not quite what you searched for
+      </p>
+      <ul className="mt-1.5 space-y-1">
+        {result.mismatches.map((m) => (
+          <li
+            key={`${m.kind}-${m.label}`}
+            className="flex items-start gap-1.5 text-sm text-amber-dark/90"
+          >
+            <span aria-hidden>•</span>
+            <span>{m.label}</span>
+          </li>
+        ))}
+      </ul>
     </div>
   )
 }

@@ -41,8 +41,15 @@ export default function DiscoverPage() {
       .filter((p): p is Product => p !== undefined)
     setPrompt(entry.prompt)
     setError(null)
-    setSearched(true)
-    setResults(products)
+    if (products.length > 0) {
+      setSearched(true)
+      setResults(products)
+    } else {
+      // No saved recommendations (e.g. the AI call hadn't succeeded yet) —
+      // just refill the box so the user can run the search again.
+      setSearched(false)
+      setResults([])
+    }
   }
 
   async function handleSubmit() {
@@ -52,6 +59,10 @@ export default function DiscoverPage() {
     setLoading(true)
     setError(null)
     setSearched(true)
+
+    // Record the question immediately so it shows in history regardless of
+    // whether the AI call succeeds; recommendations are filled in on success.
+    addSearch(trimmed, [])
 
     try {
       const ids = await discoverProducts(trimmed, getUniqueProducts())
@@ -145,9 +156,12 @@ export default function DiscoverPage() {
                       {entry.prompt}
                     </span>
                     <span className="text-xs text-gray-400">
-                      {entry.productIds.length} recommendation
-                      {entry.productIds.length === 1 ? '' : 's'} ·{' '}
-                      {timeAgo(entry.at)}
+                      {entry.productIds.length > 0
+                        ? `${entry.productIds.length} recommendation${
+                            entry.productIds.length === 1 ? '' : 's'
+                          }`
+                        : 'saved'}{' '}
+                      · {timeAgo(entry.at)}
                     </span>
                   </span>
                   <span className="shrink-0 text-xs font-semibold text-forest">

@@ -1,15 +1,22 @@
-import type { Product } from '../types'
+import type { Product, RecommendationReason } from '../types'
 import { effectivePrice } from '../types'
 import { formatCategory } from '../lib/format'
 import DiscountBadge from './DiscountBadge'
+import ReasonBadge from './ReasonBadge'
 
 interface ProductCardProps {
   product: Product
   onAdd?: (productId: string) => void
   added?: boolean
+  reasons?: RecommendationReason[]
 }
 
-export default function ProductCard({ product, onAdd, added }: ProductCardProps) {
+export default function ProductCard({
+  product,
+  onAdd,
+  added,
+  reasons,
+}: ProductCardProps) {
   const discounted = product.discount_pct > 0
   const final = effectivePrice(product)
 
@@ -47,6 +54,14 @@ export default function ProductCard({ product, onAdd, added }: ProductCardProps)
           </span>
         )}
       </div>
+
+      {reasons && reasons.length > 0 && (
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {reasons.map((reason) => (
+            <ReasonBadge key={`${reason.kind}-${reason.label}`} reason={reason} />
+          ))}
+        </div>
+      )}
 
       <p className="mt-2 text-sm text-gray-600">
         📍 Zone {product.zone} ({product.zone_name}), Aisle {product.aisle}

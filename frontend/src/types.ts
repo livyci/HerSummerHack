@@ -41,6 +41,31 @@ export interface SearchHistoryEntry {
   at: number
 }
 
+/** Structured filters parsed from a free-text Discover query. */
+export interface SearchFilters {
+  categories: string[]
+  tags: string[]
+  colors: string[]
+  priceMaxChf: number | null
+  freeText: string
+}
+
+/** A shopper's saved preferences, used to personalise Discover results. */
+export interface UserPreferences {
+  sizesByCategory: Record<string, string>
+  favoriteColors: string[]
+  budgetMinChf: number | null
+  budgetMaxChf: number | null
+  preferredBrands: string[]
+  onboarded: boolean
+}
+
+/** A real, computed reason a product is being shown ("why am I seeing this"). */
+export interface RecommendationReason {
+  label: string
+  kind: 'budget' | 'color' | 'brand' | 'discount' | 'tag-match' | 'in-stock-nearby'
+}
+
 /** Final price after discount, in CHF. */
 export function effectivePrice(p: Product): number {
   return Math.round(p.price_chf * (1 - p.discount_pct / 100) * 100) / 100

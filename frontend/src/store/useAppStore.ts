@@ -100,8 +100,12 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: 'summit-smart-store',
-      // Persist only the search history across reloads.
-      partialize: (state) => ({ searchHistory: state.searchHistory }),
+      // Persist the cart, scan log, and search history across reloads.
+      partialize: (state) => ({
+        shoppingList: state.shoppingList,
+        scannedHistory: state.scannedHistory,
+        searchHistory: state.searchHistory,
+      }),
     },
   ),
 )

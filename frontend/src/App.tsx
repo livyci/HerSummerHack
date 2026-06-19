@@ -1,6 +1,7 @@
 import { Routes, Route } from 'react-router-dom'
 import NavBar from './components/NavBar'
 import DiscoverPage from './pages/DiscoverPage'
+import PreferencesPage from './pages/PreferencesPage'
 import ShoppingPage from './pages/ShoppingPage'
 import InventoryPage from './pages/InventoryPage'
 import AdminPage from './pages/AdminPage'
@@ -12,6 +13,7 @@ export default function App() {
       <main className="flex-1">
         <Routes>
           <Route path="/" element={<DiscoverPage />} />
+          <Route path="/preferences" element={<PreferencesPage />} />
           <Route path="/shopping" element={<ShoppingPage />} />
           <Route path="/inventory" element={<InventoryPage />} />
           <Route path="/admin" element={<AdminPage />} />

@@ -14,7 +14,7 @@ export default function NavBar() {
 
   return (
     <nav className="sticky top-0 z-40 bg-forest text-white shadow-md">
-      <div className="mx-auto max-w-3xl px-4 py-3 flex items-center justify-between">
+      <div className="mx-auto max-w-5xl px-4 py-3 flex items-center justify-between">
         <NavLink to="/" className="text-lg font-bold tracking-tight">
           ⛰ Summit Outfitters
         </NavLink>
@@ -43,6 +43,9 @@ export default function NavBar() {
           </NavLink>
           <NavLink to="/admin" className={linkClass}>
             Admin
+          </NavLink>
+          <NavLink to="/preferences" className={linkClass}>
+            Preferences
           </NavLink>
         </div>
       </div>

@@ -17,6 +17,25 @@ import DiscountBadge from '../components/DiscountBadge'
 
 type MobileTab = 'list' | 'scanner'
 
+type SortKey =
+  | 'featured'
+  | 'price-asc'
+  | 'price-desc'
+  | 'discount'
+  | 'name-asc'
+  | 'name-desc'
+  | 'stock-desc'
+
+const SORT_OPTIONS: { value: SortKey; label: string }[] = [
+  { value: 'featured', label: 'Featured (deals first)' },
+  { value: 'price-asc', label: 'Price: low to high' },
+  { value: 'price-desc', label: 'Price: high to low' },
+  { value: 'discount', label: 'Biggest discount' },
+  { value: 'name-asc', label: 'Name: A–Z' },
+  { value: 'name-desc', label: 'Name: Z–A' },
+  { value: 'stock-desc', label: 'Most in stock' },
+]
+
 interface CompareTarget {
   scanned: Product
   listItem: Product
@@ -32,19 +51,79 @@ export default function ShoppingPage() {
   const [notFound, setNotFound] = useState<string | null>(null)
   const [compareTarget, setCompareTarget] = useState<CompareTarget | null>(null)
 
+  const [search, setSearch] = useState('')
   const [zoneFilter, setZoneFilter] = useState('all')
   const [categoryFilter, setCategoryFilter] = useState('all')
+  const [onSaleOnly, setOnSaleOnly] = useState(false)
+  const [sortKey, setSortKey] = useState<SortKey>('featured')
 
   const zones = useMemo(() => getZones(), [])
   const categories = useMemo(() => getCategories(), [])
 
+  const filtersActive =
+    search.trim() !== '' ||
+    zoneFilter !== 'all' ||
+    categoryFilter !== 'all' ||
+    onSaleOnly ||
+    sortKey !== 'featured'
+
+  function resetFilters() {
+    setSearch('')
+    setZoneFilter('all')
+    setCategoryFilter('all')
+    setOnSaleOnly(false)
+    setSortKey('featured')
+  }
+
   const inventory = useMemo(() => {
-    return getUniqueProducts().filter((p) => {
+    const q = search.trim().toLowerCase()
+
+    const filtered = getUniqueProducts().filter((p) => {
       if (zoneFilter !== 'all' && p.zone !== zoneFilter) return false
       if (categoryFilter !== 'all' && p.category !== categoryFilter) return false
+      if (onSaleOnly && p.discount_pct <= 0) return false
+      if (q) {
+        const haystack =
+          `${p.name} ${p.brand} ${p.category} ${p.color} ${p.tags.join(' ')}`.toLowerCase()
+        if (!haystack.includes(q)) return false
+      }
       return true
     })
-  }, [zoneFilter, categoryFilter])
+
+    const byName = (a: Product, b: Product) => a.name.localeCompare(b.name)
+    const sorted = [...filtered]
+    switch (sortKey) {
+      case 'price-asc':
+        sorted.sort((a, b) => effectivePrice(a) - effectivePrice(b) || byName(a, b))
+        break
+      case 'price-desc':
+        sorted.sort((a, b) => effectivePrice(b) - effectivePrice(a) || byName(a, b))
+        break
+      case 'discount':
+        sorted.sort((a, b) => b.discount_pct - a.discount_pct || byName(a, b))
+        break
+      case 'stock-desc':
+        sorted.sort((a, b) => b.stock_total - a.stock_total || byName(a, b))
+        break
+      case 'name-asc':
+        sorted.sort(byName)
+        break
+      case 'name-desc':
+        sorted.sort((a, b) => byName(b, a))
+        break
+      case 'featured':
+      default:
+        // On-sale items first (biggest discount first), then the rest by name.
+        sorted.sort(
+          (a, b) =>
+            Number(b.discount_pct > 0) - Number(a.discount_pct > 0) ||
+            b.discount_pct - a.discount_pct ||
+            byName(a, b),
+        )
+        break
+    }
+    return sorted
+  }, [search, zoneFilter, categoryFilter, onSaleOnly, sortKey])
 
   function handleScan(code: string) {
     addScan(code)
@@ -197,10 +276,34 @@ export default function ShoppingPage() {
 
           {/* Inventory browser */}
           <div className="mt-6 rounded-xl bg-white p-5 shadow-sm">
-            <h3 className="text-base font-bold text-gray-900">Store Inventory</h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-bold text-gray-900">Store Inventory</h3>
+              {filtersActive && (
+                <button
+                  type="button"
+                  onClick={resetFilters}
+                  className="text-xs font-semibold text-forest hover:underline"
+                >
+                  Reset
+                </button>
+              )}
+            </div>
 
-            <div className="mt-3 flex flex-col gap-3 sm:flex-row">
-              <label className="flex-1 text-sm">
+            {/* Search */}
+            <div className="mt-3">
+              <input
+                type="search"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search by name, brand, color, or tag…"
+                aria-label="Search inventory"
+                className="w-full rounded-xl border border-slate-bg bg-white px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-forest"
+              />
+            </div>
+
+            {/* Filters + sort */}
+            <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <label className="text-sm">
                 <span className="mb-1 block font-medium text-gray-600">Zone</span>
                 <select
                   value={zoneFilter}
@@ -216,7 +319,7 @@ export default function ShoppingPage() {
                 </select>
               </label>
 
-              <label className="flex-1 text-sm">
+              <label className="text-sm">
                 <span className="mb-1 block font-medium text-gray-600">
                   Category
                 </span>
@@ -233,11 +336,38 @@ export default function ShoppingPage() {
                   ))}
                 </select>
               </label>
+
+              <label className="text-sm">
+                <span className="mb-1 block font-medium text-gray-600">Sort by</span>
+                <select
+                  value={sortKey}
+                  onChange={(e) => setSortKey(e.target.value as SortKey)}
+                  className="w-full rounded-xl border border-slate-bg bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-forest"
+                >
+                  {SORT_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
             </div>
 
-            <p className="mt-3 text-xs text-gray-400">
-              {inventory.length} product{inventory.length === 1 ? '' : 's'}
-            </p>
+            {/* On-sale toggle + result count */}
+            <div className="mt-3 flex items-center justify-between">
+              <label className="inline-flex cursor-pointer items-center gap-2 text-sm text-gray-600">
+                <input
+                  type="checkbox"
+                  checked={onSaleOnly}
+                  onChange={(e) => setOnSaleOnly(e.target.checked)}
+                  className="h-4 w-4 rounded border-slate-bg accent-forest"
+                />
+                On sale only
+              </label>
+              <p className="text-xs text-gray-400">
+                {inventory.length} product{inventory.length === 1 ? '' : 's'}
+              </p>
+            </div>
 
             {inventory.length === 0 ? (
               <p className="mt-4 text-sm text-gray-500">

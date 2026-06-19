@@ -64,6 +64,11 @@ export default {
         '2xl': 'calc(var(--radius) + 8px)',
         '3xl': 'calc(var(--radius) + 12px)',
       },
+      boxShadow: {
+        sm: '0 1px 2px 0 rgb(15 23 42 / 0.04)',
+        DEFAULT: '0 4px 16px -6px rgb(15 23 42 / 0.10)',
+        md: '0 8px 24px -10px rgb(15 23 42 / 0.12)',
+      },
       fontFamily: {
         sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },

@@ -1,9 +1,11 @@
+import re
+
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from rest_framework.authtoken.models import Token
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, throttle_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
@@ -11,6 +13,7 @@ import anthropic
 
 from . import ai
 from .models import Purchase
+from .throttles import AIGlobalThrottle, AIUserThrottle
 
 
 @api_view(["GET"])
@@ -79,6 +82,36 @@ def purchase_detail(request, product_id):
 
 
 # ---- AI (Anthropic, server-side; the API key never reaches the browser) ----
+#
+# These endpoints cost money per call, so they are guarded on three fronts:
+#   - auth required (IsAuthenticated) — no anonymous access;
+#   - rate limited per-user AND globally (see throttles.py) — bounds spend;
+#   - every client-controlled field is size/shape capped before it reaches the
+#     model — prevents token-amplification and shrinks the prompt-injection
+#     surface for the discover allowlists.
+
+MAX_BODY_BYTES = 64 * 1024
+MAX_LIST_ITEMS = 256
+MAX_PRODUCTS = 300
+# Allowlist items are short slugs / labels: letters, digits, space and a few
+# punctuation marks — no newlines or control chars that could break the prompt.
+_SLUG_RE = re.compile(r"^[\w &.\-/()]{1,64}$")
+
+AI_THROTTLES = [AIUserThrottle, AIGlobalThrottle]
+
+
+def _oversize(request):
+    try:
+        return int(request.META.get("CONTENT_LENGTH") or 0) > MAX_BODY_BYTES
+    except (TypeError, ValueError):
+        return False
+
+
+def _clean_slugs(values):
+    """Keep only short, slug-shaped strings (capped count); drop everything else."""
+    if not isinstance(values, list):
+        return []
+    return [v for v in values[:MAX_LIST_ITEMS] if isinstance(v, str) and _SLUG_RE.match(v)]
 
 
 def _ai_call(fn):
@@ -96,31 +129,51 @@ def _ai_call(fn):
 
 
 @api_view(["POST"])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
+@throttle_classes(AI_THROTTLES)
 def ai_discover(request):
+    if _oversize(request):
+        return Response({"error": "Request too large."}, status=413)
     data = request.data
+    # Allowlists are validated/capped server-side so an attacker can't stuff the
+    # system prompt with arbitrary text. `parse_prompt_to_filters` also caps the
+    # free-text prompt and re-validates the model's output against these lists.
     return _ai_call(
         lambda: ai.parse_prompt_to_filters(
             data.get("prompt", ""),
-            data.get("availableTags") or [],
-            data.get("availableCategories") or [],
-            data.get("availableColors") or [],
+            _clean_slugs(data.get("availableTags")),
+            _clean_slugs(data.get("availableCategories")),
+            _clean_slugs(data.get("availableColors")),
         )
     )
 
 
 @api_view(["POST"])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
+@throttle_classes(AI_THROTTLES)
 def ai_compare(request):
+    if _oversize(request):
+        return Response({"error": "Request too large."}, status=413)
     scanned = request.data.get("scanned")
     list_item = request.data.get("listItem")
-    if scanned is None or list_item is None:
-        return Response({"error": "scanned and listItem are required."}, status=400)
+    if not isinstance(scanned, dict) or not isinstance(list_item, dict):
+        return Response(
+            {"error": "scanned and listItem must be product objects."}, status=400
+        )
     return _ai_call(lambda: {"text": ai.compare_products(scanned, list_item)})
 
 
 @api_view(["POST"])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
+@throttle_classes(AI_THROTTLES)
 def ai_promotions(request):
+    if _oversize(request):
+        return Response({"error": "Request too large."}, status=413)
     products = request.data.get("products") or []
+    if not isinstance(products, list) or len(products) > MAX_PRODUCTS:
+        return Response(
+            {"error": f"products must be a list of at most {MAX_PRODUCTS} items."},
+            status=400,
+        )
+    products = [p for p in products if isinstance(p, dict)]
     return _ai_call(lambda: {"text": ai.suggest_promotions(products)})

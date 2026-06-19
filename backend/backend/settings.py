@@ -149,4 +149,12 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
     ],
+    # Rates for the cost-bearing AI endpoints (see api/throttles.py). "ai" is
+    # per-user; "ai_global" is a single shared bucket bounding total spend.
+    # Throttling uses Django's cache (LocMemCache by default — per-process; set
+    # a shared cache like Redis in production for a hard cross-worker ceiling).
+    "DEFAULT_THROTTLE_RATES": {
+        "ai": "30/hour",
+        "ai_global": "600/day",
+    },
 }

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import type { SearchFilters } from '../types'
 import { parsePromptToFilters, MissingApiKeyError } from '../lib/claude'
 import {
@@ -28,6 +29,16 @@ const EXAMPLE_PROMPTS = [
 
 type FilterKind = 'categories' | 'tags' | 'colors'
 
+function timeAgo(ts: number): string {
+  const s = Math.floor((Date.now() - ts) / 1000)
+  if (s < 60) return 'just now'
+  const m = Math.floor(s / 60)
+  if (m < 60) return `${m}m ago`
+  const h = Math.floor(m / 60)
+  if (h < 24) return `${h}h ago`
+  return `${Math.floor(h / 24)}d ago`
+}
+
 /** Union new filters into existing ones; newest budget wins if both set one. */
 function mergeFilters(base: SearchFilters, incoming: SearchFilters): SearchFilters {
   const union = (a: string[], b: string[]) => Array.from(new Set([...a, ...b]))
@@ -53,6 +64,10 @@ export default function DiscoverPage() {
   // against the same search the shopper set here.
   const filters = useSearchStore((s) => s.filters)
   const setFilters = useSearchStore((s) => s.setFilters)
+  const savedSearches = useSearchStore((s) => s.savedSearches)
+  const newSearch = useSearchStore((s) => s.newSearch)
+  const restoreSearch = useSearchStore((s) => s.restoreSearch)
+  const clearSavedSearches = useSearchStore((s) => s.clearSavedSearches)
 
   const [prompt, setPrompt] = useState('')
   const [engaged, setEngaged] = useState(() =>
@@ -130,13 +145,37 @@ export default function DiscoverPage() {
     setFilters(EMPTY_FILTERS)
   }
 
+  // Start a fresh search: archive the current one into Saved History, then
+  // wipe the active query (filters + the input box) back to empty.
+  function handleNewSearch() {
+    newSearch()
+    setPrompt('')
+    setEngaged(false)
+    setShowAddFilter(false)
+    setError(null)
+  }
+
+  function handleRestore(id: string) {
+    restoreSearch(id)
+    setPrompt('')
+    setEngaged(true)
+  }
+
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
       {/* Hero + free-text search (available before and after the first search) */}
       <div className="rounded-2xl bg-gradient-to-br from-forest to-forest-dark p-8 sm:p-10 shadow-sm text-white">
-        <h1 className="text-2xl sm:text-3xl font-bold leading-tight tracking-tight text-white">
-          Find your perfect gear
-        </h1>
+        <div className="flex items-start justify-between gap-3">
+          <h1 className="text-2xl sm:text-3xl font-bold leading-tight tracking-tight text-white">
+            Find your perfect gear
+          </h1>
+          <Link
+            to="/navigate"
+            className="shrink-0 rounded-full bg-white/15 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-white/25"
+          >
+            📍 Store map
+          </Link>
+        </div>
         <p className="mt-3 text-slate-100/80 text-sm sm:text-base">
           Describe your adventure — we'll turn it into filters you can fine-tune.
           Add another phrase any time to narrow things down.
@@ -150,14 +189,25 @@ export default function DiscoverPage() {
             placeholder="What are you looking for today? (e.g. 'I want to go hiking in wet weather for 3 days')"
             className="w-full resize-none rounded-2xl border border-white/10 bg-white p-4 text-sm text-gray-900 placeholder:text-gray-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-amber"
           />
-          <button
-            type="button"
-            onClick={handleSubmit}
-            disabled={loading || prompt.trim().length === 0}
-            className="self-start rounded-xl bg-amber px-6 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-amber-dark disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {loading ? 'Reading…' : engaged ? 'Add to search' : 'Find for me'}
-          </button>
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              onClick={handleSubmit}
+              disabled={loading || prompt.trim().length === 0}
+              className="rounded-xl bg-amber px-6 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-amber-dark disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {loading ? 'Reading…' : engaged ? 'Add to search' : 'Find for me'}
+            </button>
+            {engaged && (
+              <button
+                type="button"
+                onClick={handleNewSearch}
+                className="rounded-xl border border-white/40 px-4 py-3 text-sm font-semibold text-white/90 transition-colors hover:bg-white/10"
+              >
+                New search
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -165,6 +215,45 @@ export default function DiscoverPage() {
       {error && (
         <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
           {error}
+        </div>
+      )}
+
+      {/* Saved search history — archived whenever you start a new search */}
+      {savedSearches.length > 0 && (
+        <div className="mt-6 rounded-xl bg-white p-4 shadow-sm sm:p-5">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-bold text-gray-900">Saved searches</h2>
+            <button
+              type="button"
+              onClick={clearSavedSearches}
+              className="text-xs font-semibold text-forest hover:underline"
+            >
+              Clear
+            </button>
+          </div>
+          <ul className="mt-2 divide-y divide-slate-bg">
+            {savedSearches.map((s) => (
+              <li key={s.id}>
+                <button
+                  type="button"
+                  onClick={() => handleRestore(s.id)}
+                  className="-mx-2 flex w-full items-center justify-between gap-3 rounded-lg px-2 py-2.5 text-left transition-colors hover:bg-forest-50"
+                >
+                  <span className="min-w-0">
+                    <span className="block truncate text-sm font-medium text-gray-800">
+                      {s.label}
+                    </span>
+                    <span className="text-xs text-gray-400">
+                      {timeAgo(s.at)}
+                    </span>
+                  </span>
+                  <span className="shrink-0 text-xs font-semibold text-forest">
+                    Restore →
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
 

@@ -1,4 +1,4 @@
-# Summit Outfitters — Smart Store
+# ScanIt — Just Scan It.
 
 A frontend-only React + Vite + TypeScript web app for an outdoor gear store, built for the Scandit hackathon. It simulates Scandit barcode scanning through manual `product_code` entry, and uses Anthropic's Claude AI for natural-language product recommendations, side-by-side product comparisons, and store-owner promotion suggestions. Product data (249 SKUs across 69 products) is loaded from a local JSON file at runtime, so there is **no backend required** to run the app.
 

@@ -121,21 +121,21 @@ export default function InventoryPage() {
     <div className="mx-auto w-full max-w-7xl px-4 py-8">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
             Store Inventory
           </h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-muted-foreground">
             Browse the full catalogue — filter by zone or category, sort any way
             you like.
           </p>
         </div>
-        <p className="text-sm text-gray-400">
+        <p className="text-sm text-muted-foreground">
           {inventory.length} product{inventory.length === 1 ? '' : 's'}
         </p>
       </div>
 
       {/* Controls */}
-      <div className="mt-6 rounded-xl bg-white p-4 shadow-sm">
+      <div className="mt-6 rounded-2xl bg-card border border-border p-4 shadow-sm">
         <div className="flex items-center justify-between">
           <input
             type="search"
@@ -143,13 +143,13 @@ export default function InventoryPage() {
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by name, brand, color, or tag…"
             aria-label="Search inventory"
-            className="w-full rounded-xl border border-slate-bg bg-white px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-forest"
+            className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
           />
           {filtersActive && (
             <button
               type="button"
               onClick={resetFilters}
-              className="ml-3 shrink-0 text-xs font-semibold text-forest hover:underline"
+              className="ml-3 shrink-0 text-xs font-semibold text-primary hover:underline"
             >
               Reset
             </button>
@@ -158,11 +158,11 @@ export default function InventoryPage() {
 
         <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
           <label className="text-sm">
-            <span className="mb-1 block font-medium text-gray-600">Zone</span>
+            <span className="mb-1 block font-medium text-muted-foreground">Zone</span>
             <select
               value={zoneFilter}
               onChange={(e) => setZoneFilter(e.target.value)}
-              className="w-full rounded-xl border border-slate-bg bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-forest"
+              className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
             >
               <option value="all">All zones</option>
               {zones.map((z) => (
@@ -174,11 +174,11 @@ export default function InventoryPage() {
           </label>
 
           <label className="text-sm">
-            <span className="mb-1 block font-medium text-gray-600">Category</span>
+            <span className="mb-1 block font-medium text-muted-foreground">Category</span>
             <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
-              className="w-full rounded-xl border border-slate-bg bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-forest"
+              className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
             >
               <option value="all">All categories</option>
               {categories.map((c) => (
@@ -190,11 +190,11 @@ export default function InventoryPage() {
           </label>
 
           <label className="text-sm">
-            <span className="mb-1 block font-medium text-gray-600">Sort by</span>
+            <span className="mb-1 block font-medium text-muted-foreground">Sort by</span>
             <select
               value={sortKey}
               onChange={(e) => setSortKey(e.target.value as SortKey)}
-              className="w-full rounded-xl border border-slate-bg bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-forest"
+              className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
             >
               {SORT_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -206,12 +206,12 @@ export default function InventoryPage() {
         </div>
 
         <div className="mt-3">
-          <label className="inline-flex cursor-pointer items-center gap-2 text-sm text-gray-600">
+          <label className="inline-flex cursor-pointer items-center gap-2 text-sm text-muted-foreground">
             <input
               type="checkbox"
               checked={onSaleOnly}
               onChange={(e) => setOnSaleOnly(e.target.checked)}
-              className="h-4 w-4 rounded border-slate-bg accent-forest"
+              className="h-4 w-4 rounded border-border accent-primary"
             />
             On sale only
           </label>
@@ -220,7 +220,7 @@ export default function InventoryPage() {
 
       {/* Grid */}
       {inventory.length === 0 ? (
-        <p className="mt-8 text-center text-sm text-gray-500">
+        <p className="mt-8 text-center text-sm text-muted-foreground">
           No products match these filters.
         </p>
       ) : (

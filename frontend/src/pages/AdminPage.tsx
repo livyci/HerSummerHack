@@ -197,15 +197,15 @@ export default function AdminPage() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
-      <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+      <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
         Store dashboard
       </h1>
-      <p className="mt-1 text-sm text-gray-500">
+      <p className="mt-1 text-sm text-muted-foreground">
         Live analytics across your full catalogue.
       </p>
 
       {/* ============ a) Inventory Overview ============ */}
-      <h2 className="mt-8 mb-4 text-xl font-bold text-gray-900">
+      <h2 className="mt-8 mb-4 text-xl font-bold text-foreground">
         Inventory Overview
       </h2>
 
@@ -223,7 +223,7 @@ export default function AdminPage() {
       </div>
 
       {/* Live shelf activity — updates as shoppers cross items off as bought */}
-      <h2 className="mt-8 mb-4 text-xl font-bold text-gray-900">
+      <h2 className="mt-8 mb-4 text-xl font-bold text-foreground">
         Live shelf activity
       </h2>
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
@@ -241,8 +241,8 @@ export default function AdminPage() {
         />
       </div>
 
-      <div className="mt-6 rounded-xl bg-white p-5 shadow-sm">
-        <h3 className="mb-4 text-base font-bold text-gray-900">Stock by zone</h3>
+      <div className="mt-6 rounded-2xl bg-card border border-border p-5 shadow-sm">
+        <h3 className="mb-4 text-base font-bold text-foreground">Stock by zone</h3>
         <div style={{ width: '100%', height: 300 }}>
           <ResponsiveContainer>
             <BarChart data={stockByZone}>
@@ -255,19 +255,19 @@ export default function AdminPage() {
         </div>
       </div>
 
-      <div className="mt-6 rounded-xl bg-white p-5 shadow-sm">
-        <h3 className="mb-4 text-base font-bold text-gray-900">
+      <div className="mt-6 rounded-2xl bg-card border border-border p-5 shadow-sm">
+        <h3 className="mb-4 text-base font-bold text-foreground">
           Low-stock alerts
-          <span className="ml-2 text-sm font-normal text-gray-400">
+          <span className="ml-2 text-sm font-normal text-muted-foreground">
             (front stock ≤ 2)
           </span>
         </h3>
         {lowStock.length === 0 ? (
-          <p className="text-sm text-gray-500">All shelves are well stocked.</p>
+          <p className="text-sm text-muted-foreground">All shelves are well stocked.</p>
         ) : (
           <div className="max-h-96 overflow-auto">
             <table className="w-full text-left text-sm">
-              <thead className="sticky top-0 bg-white text-xs uppercase tracking-wide text-gray-500">
+              <thead className="sticky top-0 bg-card text-xs uppercase tracking-wide text-muted-foreground">
                 <tr>
                   <SortableTh
                     label="Name"
@@ -291,9 +291,9 @@ export default function AdminPage() {
                 {lowStock.map((p) => (
                   <tr
                     key={p.product_code}
-                    className="border-t border-slate-bg text-gray-700"
+                    className="border-t border-border text-foreground"
                   >
-                    <td className="py-2 pr-3 font-medium text-gray-900">
+                    <td className="py-2 pr-3 font-medium text-foreground">
                       {p.name}
                     </td>
                     <td className="py-2 pr-3">{p.size}</td>
@@ -305,7 +305,7 @@ export default function AdminPage() {
                       <span
                         className={
                           p.stock_front <= 0
-                            ? 'font-semibold text-red-600'
+                            ? 'font-semibold text-destructive'
                             : 'font-semibold text-amber-dark'
                         }
                       >
@@ -322,13 +322,13 @@ export default function AdminPage() {
       </div>
 
       {/* ============ b) Discount Performance ============ */}
-      <h2 className="mt-10 mb-4 text-xl font-bold text-gray-900">
+      <h2 className="mt-10 mb-4 text-xl font-bold text-foreground">
         Discount Performance
       </h2>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <div className="rounded-xl bg-white p-5 shadow-sm">
-          <h3 className="mb-4 text-base font-bold text-gray-900">
+        <div className="rounded-2xl bg-card border border-border p-5 shadow-sm">
+          <h3 className="mb-4 text-base font-bold text-foreground">
             Discounted vs full price
           </h3>
           <div style={{ width: '100%', height: 300 }}>
@@ -354,16 +354,16 @@ export default function AdminPage() {
           </div>
         </div>
 
-        <div className="rounded-xl bg-white p-5 shadow-sm">
-          <h3 className="mb-4 text-base font-bold text-gray-900">
+        <div className="rounded-2xl bg-card border border-border p-5 shadow-sm">
+          <h3 className="mb-4 text-base font-bold text-foreground">
             Discounted products
           </h3>
           {discountedSorted.length === 0 ? (
-            <p className="text-sm text-gray-500">No products on discount.</p>
+            <p className="text-sm text-muted-foreground">No products on discount.</p>
           ) : (
             <div className="max-h-96 overflow-auto">
               <table className="w-full text-left text-sm">
-                <thead className="sticky top-0 bg-white text-xs uppercase tracking-wide text-gray-500">
+                <thead className="sticky top-0 bg-card text-xs uppercase tracking-wide text-muted-foreground">
                   <tr>
                     <th className="py-2 pr-3">Name</th>
                     <th className="py-2 pr-3">Discount</th>
@@ -379,18 +379,18 @@ export default function AdminPage() {
                     return (
                       <tr
                         key={p.product_id}
-                        className="border-t border-slate-bg text-gray-700"
+                        className="border-t border-border text-foreground"
                       >
-                        <td className="py-2 pr-3 font-medium text-gray-900">
+                        <td className="py-2 pr-3 font-medium text-foreground">
                           {p.name}
                         </td>
                         <td className="py-2 pr-3 font-semibold text-amber-dark">
                           -{p.discount_pct}%
                         </td>
-                        <td className="py-2 pr-3 text-gray-400 line-through">
+                        <td className="py-2 pr-3 text-muted-foreground line-through">
                           CHF {p.price_chf}
                         </td>
-                        <td className="py-2 pr-3 font-semibold text-forest">
+                        <td className="py-2 pr-3 font-semibold text-foreground">
                           CHF {sale}
                         </td>
                       </tr>
@@ -404,40 +404,40 @@ export default function AdminPage() {
       </div>
 
       {/* Suggested promotions callout */}
-      <div className="mt-6 rounded-xl border-l-4 border-forest bg-forest-50 p-5">
+      <div className="mt-6 rounded-2xl border-l-4 border-primary bg-primary/10 p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h3 className="text-base font-bold text-forest-dark">
+          <h3 className="text-base font-bold text-foreground">
             Suggested promotions
           </h3>
           <button
             type="button"
             onClick={handleGeneratePromotions}
             disabled={promoLoading}
-            className="rounded-xl bg-forest px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-forest-dark disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {promoLoading ? 'Generating…' : 'Generate suggestions'}
           </button>
         </div>
 
         {promoLoading && (
-          <div className="mt-4 flex items-center gap-3 text-sm text-forest-dark">
-            <div className="h-5 w-5 animate-spin rounded-full border-2 border-forest-light border-t-forest" />
+          <div className="mt-4 flex items-center gap-3 text-sm text-foreground">
+            <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary/30 border-t-primary" />
             Thinking up the best promotions…
           </div>
         )}
 
         {!promoLoading && promoError && (
-          <p className="mt-4 text-sm text-red-700">{promoError}</p>
+          <p className="mt-4 text-sm text-destructive">{promoError}</p>
         )}
 
         {!promoLoading && promoResult && (
-          <p className="mt-4 whitespace-pre-line text-sm text-gray-700">
+          <p className="mt-4 whitespace-pre-line text-sm text-foreground">
             {promoResult}
           </p>
         )}
 
         {!promoLoading && !promoResult && !promoError && (
-          <p className="mt-3 text-sm text-forest-dark/70">
+          <p className="mt-3 text-sm text-muted-foreground">
             Get AI-generated bundle and cross-sell ideas based on what's
             currently discounted.
           </p>
@@ -445,13 +445,13 @@ export default function AdminPage() {
       </div>
 
       {/* ============ c) Category Insights ============ */}
-      <h2 className="mt-10 mb-4 text-xl font-bold text-gray-900">
+      <h2 className="mt-10 mb-4 text-xl font-bold text-foreground">
         Category Insights
       </h2>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <div className="rounded-xl bg-white p-5 shadow-sm">
-          <h3 className="mb-4 text-base font-bold text-gray-900">
+        <div className="rounded-2xl bg-card border border-border p-5 shadow-sm">
+          <h3 className="mb-4 text-base font-bold text-foreground">
             Average price by category
           </h3>
           <div style={{ width: '100%', height: 300 }}>
@@ -473,8 +473,8 @@ export default function AdminPage() {
           </div>
         </div>
 
-        <div className="rounded-xl bg-white p-5 shadow-sm">
-          <h3 className="mb-4 text-base font-bold text-gray-900">
+        <div className="rounded-2xl bg-card border border-border p-5 shadow-sm">
+          <h3 className="mb-4 text-base font-bold text-foreground">
             SKUs per category
           </h3>
           <div style={{ width: '100%', height: 300 }}>
@@ -497,13 +497,13 @@ export default function AdminPage() {
         </div>
       </div>
 
-      <div className="mt-6 rounded-xl bg-white p-5 shadow-sm">
-        <h3 className="mb-4 text-base font-bold text-gray-900">
+      <div className="mt-6 rounded-2xl bg-card border border-border p-5 shadow-sm">
+        <h3 className="mb-4 text-base font-bold text-foreground">
           Categories by stock value
         </h3>
         <div className="overflow-auto">
           <table className="w-full text-left text-sm">
-            <thead className="text-xs uppercase tracking-wide text-gray-500">
+            <thead className="text-xs uppercase tracking-wide text-muted-foreground">
               <tr>
                 <th className="py-2 pr-3">Category</th>
                 <th className="py-2 pr-3"># SKUs</th>
@@ -515,14 +515,14 @@ export default function AdminPage() {
               {categoryTable.map((c) => (
                 <tr
                   key={c.category}
-                  className="border-t border-slate-bg text-gray-700"
+                  className="border-t border-border text-foreground"
                 >
-                  <td className="py-2 pr-3 font-medium text-gray-900">
+                  <td className="py-2 pr-3 font-medium text-foreground">
                     {formatCategory(c.category)}
                   </td>
                   <td className="py-2 pr-3">{c.skus}</td>
                   <td className="py-2 pr-3">CHF {c.avgPrice}</td>
-                  <td className="py-2 pr-3 font-semibold text-forest">
+                  <td className="py-2 pr-3 font-semibold text-foreground">
                     {formatChf(c.stockValue)}
                   </td>
                 </tr>
@@ -537,11 +537,11 @@ export default function AdminPage() {
 
 function SummaryCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl bg-white p-5 shadow-sm">
-      <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+    <div className="rounded-2xl bg-card border border-border p-5 shadow-sm">
+      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
         {label}
       </p>
-      <p className="mt-2 text-2xl font-bold text-gray-900">{value}</p>
+      <p className="mt-2 text-2xl font-bold text-foreground">{value}</p>
     </div>
   )
 }
@@ -563,7 +563,7 @@ function SortableTh({
         type="button"
         onClick={onClick}
         className={`inline-flex items-center gap-1 ${
-          active ? 'text-forest' : 'text-gray-500'
+          active ? 'text-primary' : 'text-muted-foreground'
         }`}
       >
         {label}

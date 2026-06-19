@@ -27,11 +27,11 @@ export default function AuthPage() {
 
   return (
     <div className="mx-auto max-w-sm px-4 py-12">
-      <div className="rounded-xl bg-white p-6 shadow-sm border border-slate-bg">
-        <h1 className="text-xl font-bold text-gray-900">
+      <div className="rounded-2xl bg-card p-6 shadow-sm border border-border">
+        <h1 className="text-xl font-bold text-foreground">
           {mode === 'login' ? 'Log in' : 'Create an account'}
         </h1>
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-1 text-sm text-muted-foreground">
           {mode === 'login'
             ? 'Log in to track what you already own.'
             : 'Sign up so we never suggest gear you already have.'}
@@ -44,7 +44,7 @@ export default function AuthPage() {
             placeholder="Username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            className="rounded-xl border border-gray-300 px-3 py-2 text-sm focus:border-forest focus:outline-none"
+            className="rounded-xl border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
           />
           <input
             type="password"
@@ -52,11 +52,11 @@ export default function AuthPage() {
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="rounded-xl border border-gray-300 px-3 py-2 text-sm focus:border-forest focus:outline-none"
+            className="rounded-xl border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
           />
 
           {authError && (
-            <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+            <p className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">
               {authError}
             </p>
           )}
@@ -64,7 +64,7 @@ export default function AuthPage() {
           <button
             type="submit"
             disabled={submitting || !username || !password}
-            className="rounded-xl bg-forest px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-forest-dark disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {submitting
               ? 'Please wait…'
@@ -77,7 +77,7 @@ export default function AuthPage() {
         <button
           type="button"
           onClick={() => setMode(mode === 'login' ? 'register' : 'login')}
-          className="mt-4 w-full text-center text-sm font-medium text-forest hover:underline"
+          className="mt-4 w-full text-center text-sm font-medium text-primary hover:underline"
         >
           {mode === 'login'
             ? "Don't have an account? Sign up"

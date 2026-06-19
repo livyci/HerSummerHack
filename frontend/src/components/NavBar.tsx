@@ -21,7 +21,7 @@ export default function NavBar() {
     <nav className="sticky top-0 z-40 bg-forest text-white shadow-md">
       <div className="mx-auto max-w-5xl px-4 py-3 flex items-center justify-between">
         <NavLink to="/" className="flex items-baseline gap-2">
-          <span className="text-lg font-bold tracking-tight">⛰ ScanIt</span>
+          <span className="text-lg font-bold tracking-tight">⛰ ScannedIt</span>
           <span className="hidden text-xs font-medium text-forest-50/80 sm:inline">
             Just Scan It.
           </span>

@@ -4,6 +4,7 @@ import { effectivePrice } from '../types'
 import {
   getByBarcode,
   getProductById,
+  doesMatchWishlist,
   explainScanMatch,
   type ScanMatchResult,
 } from '../lib/products'
@@ -73,6 +74,11 @@ export default function ShoppingPage() {
   const scanMatch: ScanMatchResult | null = scanned
     ? explainScanMatch(scanned, filters, preferences)
     : null
+
+  // Is the scanned item already on the shopper's wishlist (their saved list)?
+  const isWishlistMatch = scanned
+    ? doesMatchWishlist(scanned, shoppingList)
+    : false
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
@@ -152,6 +158,21 @@ export default function ShoppingPage() {
                 <p className="mt-0.5 text-sm text-gray-500">
                   {scanned.brand} · {formatCategory(scanned.category)}
                 </p>
+
+                {/* Wishlist match status — shown immediately on every scan. */}
+                <div className="mt-2">
+                  <span
+                    className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                      isWishlistMatch
+                        ? 'bg-forest text-white'
+                        : 'bg-slate-bg text-gray-500'
+                    }`}
+                  >
+                    {isWishlistMatch
+                      ? '★ On your wishlist'
+                      : '☆ Not on your wishlist'}
+                  </span>
+                </div>
 
                 <div className="mt-2 flex items-baseline gap-2">
                   {scanned.discount_pct > 0 ? (

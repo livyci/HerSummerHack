@@ -3,12 +3,12 @@ import type { SearchFilters } from '../types'
 import { parsePromptToFilters, MissingApiKeyError } from '../lib/claude'
 import {
   getUniqueProducts,
-  filterProducts,
   explainRecommendation,
   getAllTags,
   getCategories,
   getColors,
 } from '../lib/products'
+import { recommendByFilters } from '../lib/recommend'
 import { formatCategory } from '../lib/format'
 import { useAppStore } from '../store/useAppStore'
 import { useCurrentUser } from '../store/useUserStore'
@@ -66,9 +66,9 @@ export default function DiscoverPage() {
   // items are filtered out so we never re-suggest gear the shopper owns.
   const ownedSet = new Set(purchases)
   const results = engaged
-    ? filterProducts(CATALOGUE, filters, preferences).filter(
-        (p) => !ownedSet.has(p.product_id),
-      )
+    ? recommendByFilters(CATALOGUE, filters, preferences)
+        .map((s) => s.product)
+        .filter((p) => !ownedSet.has(p.product_id))
     : []
 
   const activeCount =

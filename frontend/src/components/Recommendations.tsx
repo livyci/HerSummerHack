@@ -21,7 +21,7 @@ export default function Recommendations({
   onAdd,
   isAdded,
 }: RecommendationsProps) {
-  const recs = useMemo(() => recommend(anchor, 6), [anchor])
+  const recs = useMemo(() => recommend(anchor, 3), [anchor])
 
   if (recs.length === 0) return null
 
@@ -34,8 +34,8 @@ export default function Recommendations({
         </span>
       </h3>
 
-      <div className="mt-3 grid gap-3 sm:grid-cols-2">
-        {recs.map(({ product, reason, sharedTags }) => {
+      <div className="mt-3 grid gap-3 sm:grid-cols-3">
+        {recs.map(({ product, reason, explanation }) => {
           const added = isAdded(product.product_id)
           return (
             <div
@@ -52,6 +52,11 @@ export default function Recommendations({
               </p>
               <p className="text-xs text-gray-500">
                 {product.brand} · {formatCategory(product.category)}
+              </p>
+
+              {/* Why we recommended this */}
+              <p className="mt-1.5 text-[11px] leading-snug text-gray-500">
+                {explanation}
               </p>
 
               <div className="mt-auto flex items-center justify-between pt-2">
@@ -71,12 +76,6 @@ export default function Recommendations({
                   {added ? '✓ Added' : 'Add'}
                 </button>
               </div>
-
-              {sharedTags.length > 0 && (
-                <p className="mt-1 text-[11px] text-gray-400">
-                  {sharedTags.slice(0, 3).join(' · ')}
-                </p>
-              )}
             </div>
           )
         })}

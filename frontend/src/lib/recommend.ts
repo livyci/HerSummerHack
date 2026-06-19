@@ -1,5 +1,6 @@
 import type { Product } from '../types'
 import { getUniqueProducts } from './products'
+import { formatCategory } from './format'
 
 /**
  * Cross-sell map: for a given category, which categories pair well with it on
@@ -47,6 +48,39 @@ export interface Recommendation {
   score: number
   reason: RecReason
   sharedTags: string[]
+  /** One short sentence explaining why this was recommended. */
+  explanation: string
+}
+
+/** Build a brief, human "why we picked this" sentence from the scoring signals. */
+function explain(
+  anchor: Product,
+  p: Product,
+  reason: RecReason,
+  sharedTags: string[],
+): string {
+  const parts: string[] = []
+
+  if (reason === 'Pairs well') {
+    parts.push(`Goes with your ${formatCategory(anchor.category)}`)
+  } else if (reason === 'Similar') {
+    parts.push(`Similar to your ${formatCategory(anchor.category)}`)
+  } else {
+    parts.push('Related pick')
+  }
+
+  // Add the single strongest supporting signal, if any.
+  if (sharedTags.length > 0) {
+    parts.push(`also ${sharedTags.slice(0, 2).join(' & ')}`)
+  } else if (p.brand === anchor.brand) {
+    parts.push(`same brand (${p.brand})`)
+  } else if (p.zone === anchor.zone) {
+    parts.push(`same zone (${anchor.zone})`)
+  }
+
+  if (p.discount_pct > 0) parts.push(`${p.discount_pct}% off`)
+
+  return parts.join(' · ')
 }
 
 /**
@@ -55,7 +89,7 @@ export interface Recommendation {
  */
 export function recommend(
   anchor: Product | null,
-  limit = 6,
+  limit = 3,
 ): Recommendation[] {
   if (!anchor) return []
   const complementCats = new Set(COMPLEMENTS[anchor.category] ?? [])
@@ -84,7 +118,13 @@ export function recommend(
     if (p.discount_pct > 0) score += W.onSale
 
     if (score <= 0) continue
-    scored.push({ product: p, score, reason, sharedTags })
+    scored.push({
+      product: p,
+      score,
+      reason,
+      sharedTags,
+      explanation: explain(anchor, p, reason, sharedTags),
+    })
   }
 
   scored.sort(

@@ -7,6 +7,10 @@ import { getCurrentPrefs } from './useUserStore'
 
 const MAX_SEARCH_HISTORY = 12
 
+// The app is always signed in as this demo account against the real backend.
+const LENA_USERNAME = 'lena'
+const LENA_PASSWORD = 'summit-lena-2026'
+
 interface AppState {
   shoppingList: ShoppingListItem[]
   scannedHistory: ScannedItem[]
@@ -24,6 +28,7 @@ interface AppState {
   authError: string | null
   register: (username: string, password: string) => Promise<boolean>
   login: (username: string, password: string) => Promise<boolean>
+  ensureLena: () => Promise<void>
   logout: () => void
   loadPurchases: () => Promise<void>
   markAsBought: (productId: string) => Promise<void>
@@ -166,6 +171,21 @@ export const useAppStore = create<AppState>()(
           set({ authError: 'Network error. Please try again.' })
           return false
         }
+      },
+
+      // Ensure the session is signed in as Lena, using the real backend auth.
+      // Logs in if the Lena account exists, otherwise registers it. Best-effort:
+      // if the backend is unreachable the rest of the app still works.
+      ensureLena: async () => {
+        if (get().token && get().username === LENA_USERNAME) {
+          await get().loadPurchases()
+          return
+        }
+        // A different/stale session — drop it and sign in as Lena.
+        if (get().token) get().logout()
+        const ok = await get().login(LENA_USERNAME, LENA_PASSWORD)
+        if (!ok) await get().register(LENA_USERNAME, LENA_PASSWORD)
+        set({ authError: null })
       },
 
       logout: () => {

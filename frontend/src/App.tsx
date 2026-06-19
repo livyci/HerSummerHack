@@ -10,10 +10,12 @@ import ProfilePage from './pages/ProfilePage'
 import { useAppStore } from './store/useAppStore'
 
 export default function App() {
-  const loadPurchases = useAppStore((s) => s.loadPurchases)
+  // Always sign in as Lena (the single demo account) on startup, then her
+  // saved purchases load with the session.
+  const ensureLena = useAppStore((s) => s.ensureLena)
   useEffect(() => {
-    loadPurchases()
-  }, [loadPurchases])
+    ensureLena()
+  }, [ensureLena])
 
   return (
     <div className="min-h-full flex flex-col">

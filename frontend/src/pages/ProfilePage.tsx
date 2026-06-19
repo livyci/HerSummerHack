@@ -55,8 +55,7 @@ export default function ProfilePage() {
         <p className="mt-1 text-forest-50/90 text-sm">
           Signed in as <span className="font-semibold">{current.name}</span>.
           Your preferences personalise Discover, default sizes, and product
-          highlights. Switch accounts from the top-right. Changes save
-          automatically.
+          highlights. Changes save automatically.
         </p>
       </div>
 

@@ -51,3 +51,25 @@ def login(request):
 def logout(request):
     Token.objects.filter(user=request.user).delete()
     return Response(status=204)
+
+
+def _product_ids(user):
+    return list(user.purchases.values_list("product_id", flat=True))
+
+
+@api_view(["GET", "POST"])
+@permission_classes([IsAuthenticated])
+def purchases(request):
+    if request.method == "POST":
+        product_id = (request.data.get("product_id") or "").strip()
+        if not product_id:
+            return Response({"error": "product_id is required."}, status=400)
+        Purchase.objects.get_or_create(user=request.user, product_id=product_id)
+    return Response({"product_ids": _product_ids(request.user)})
+
+
+@api_view(["DELETE"])
+@permission_classes([IsAuthenticated])
+def purchase_detail(request, product_id):
+    Purchase.objects.filter(user=request.user, product_id=product_id).delete()
+    return Response({"product_ids": _product_ids(request.user)})

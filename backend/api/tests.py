@@ -76,3 +76,46 @@ class AuthEndpointTests(TestCase):
         self.client.credentials(HTTP_AUTHORIZATION=f"Token {token}")
         res = self.client.post("/api/auth/logout/")
         self.assertEqual(res.status_code, 204)
+
+
+class PurchaseEndpointTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username="erin", password="pw-strong-123")
+        login = self.client.post(
+            "/api/auth/login/",
+            {"username": "erin", "password": "pw-strong-123"},
+            format="json",
+        )
+        self.client.credentials(HTTP_AUTHORIZATION=f"Token {login.data['token']}")
+
+    def test_requires_auth(self):
+        anon = APIClient()
+        self.assertEqual(anon.get("/api/purchases/").status_code, 401)
+
+    def test_post_creates_and_lists(self):
+        res = self.client.post("/api/purchases/", {"product_id": "P1"}, format="json")
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.data["product_ids"], ["P1"])
+
+    def test_post_is_idempotent(self):
+        self.client.post("/api/purchases/", {"product_id": "P1"}, format="json")
+        res = self.client.post("/api/purchases/", {"product_id": "P1"}, format="json")
+        self.assertEqual(res.data["product_ids"], ["P1"])
+        self.assertEqual(Purchase.objects.filter(user=self.user).count(), 1)
+
+    def test_list_is_user_scoped(self):
+        other = User.objects.create_user(username="frank", password="pw-strong-123")
+        Purchase.objects.create(user=other, product_id="OTHER")
+        self.client.post("/api/purchases/", {"product_id": "MINE"}, format="json")
+        res = self.client.get("/api/purchases/")
+        self.assertEqual(res.data["product_ids"], ["MINE"])
+
+    def test_delete_removes_and_is_idempotent(self):
+        self.client.post("/api/purchases/", {"product_id": "P1"}, format="json")
+        res = self.client.delete("/api/purchases/P1/")
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.data["product_ids"], [])
+        # deleting again is fine
+        res2 = self.client.delete("/api/purchases/P1/")
+        self.assertEqual(res2.status_code, 200)

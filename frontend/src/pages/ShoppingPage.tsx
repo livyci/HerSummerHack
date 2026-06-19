@@ -12,6 +12,8 @@ import { useAppStore } from '../store/useAppStore'
 import { useSearchStore, hasActiveFilters } from '../store/useSearchStore'
 import { useCurrentUser } from '../store/useUserStore'
 import ScanInput from '../components/ScanInput'
+import ShelfScanner from '../components/ShelfScanner'
+import { scannerConfigured } from '../lib/scandit'
 import ShoppingList from '../components/ShoppingList'
 import Recommendations from '../components/Recommendations'
 import CompareModal from '../components/CompareModal'
@@ -36,6 +38,7 @@ export default function ShoppingPage() {
   const [scanned, setScanned] = useState<Product | null>(null)
   const [notFound, setNotFound] = useState<string | null>(null)
   const [compareTarget, setCompareTarget] = useState<CompareTarget | null>(null)
+  const [shelfOpen, setShelfOpen] = useState(false)
 
   function handleScan(code: string) {
     addScan(code)
@@ -128,6 +131,18 @@ export default function ShoppingPage() {
           </h2>
 
           <ScanInput onScan={handleScan} />
+
+          {/* Shelf scanning: MatrixScan AR highlights wishlist items on a whole shelf. */}
+          {scannerConfigured() && (
+            <button
+              type="button"
+              onClick={() => setShelfOpen(true)}
+              className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-forest/30 bg-forest-50 px-5 py-3 text-sm font-semibold text-forest hover:bg-forest-50/70"
+            >
+              <span className="h-2 w-2 animate-pulse rounded-full bg-forest" />
+              Scan a whole shelf (AR)
+            </button>
+          )}
 
           {/* Not found */}
           {notFound && (
@@ -224,6 +239,8 @@ export default function ShoppingPage() {
           onClose={() => setCompareTarget(null)}
         />
       )}
+
+      {shelfOpen && <ShelfScanner onClose={() => setShelfOpen(false)} />}
     </div>
   )
 }

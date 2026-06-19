@@ -51,6 +51,10 @@ export default function DiscoverPage() {
   const preferences = useCurrentUser().prefs
   const addToList = useAppStore((s) => s.addToList)
   const shoppingList = useAppStore((s) => s.shoppingList)
+  const purchases = useAppStore((s) => s.purchases)
+  const token = useAppStore((s) => s.token)
+  const markAsBought = useAppStore((s) => s.markAsBought)
+  const unmarkBought = useAppStore((s) => s.unmarkBought)
 
   const [prompt, setPrompt] = useState('')
   const [filters, setFilters] = useState<SearchFilters>(EMPTY_FILTERS)
@@ -59,9 +63,13 @@ export default function DiscoverPage() {
   const [error, setError] = useState<string | null>(null)
   const [showAddFilter, setShowAddFilter] = useState(false)
 
-  // Pure, synchronous — recomputed on every render, no AI call.
+  // Pure, synchronous — recomputed on every render, no AI call. Already-bought
+  // items are filtered out so we never re-suggest gear the shopper owns.
+  const ownedSet = new Set(purchases)
   const results = engaged
-    ? filterProducts(CATALOGUE, filters, preferences)
+    ? filterProducts(CATALOGUE, filters, preferences).filter(
+        (p) => !ownedSet.has(p.product_id),
+      )
     : []
 
   const activeCount =
@@ -331,6 +339,9 @@ export default function DiscoverPage() {
                     )}
                     reasons={explainRecommendation(product, filters, preferences)}
                     favoriteColors={preferences.favoriteColors}
+                    owned={purchases.includes(product.product_id)}
+                    onMarkBought={token ? markAsBought : undefined}
+                    onUnmarkBought={token ? unmarkBought : undefined}
                   />
                 ))}
               </div>

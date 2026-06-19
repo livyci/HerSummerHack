@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { NavLink } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useAppStore } from '../store/useAppStore'
 import { useUserStore, useCurrentUser } from '../store/useUserStore'
 
@@ -16,6 +17,10 @@ function initials(name: string): string {
 
 export default function NavBar() {
   const listCount = useAppStore((s) => s.shoppingList.length)
+  const navigate = useNavigate()
+  const username = useAppStore((s) => s.username)
+  const token = useAppStore((s) => s.token)
+  const logout = useAppStore((s) => s.logout)
   const accounts = useUserStore((s) => s.accounts)
   const switchUser = useUserStore((s) => s.switchUser)
   const current = useCurrentUser()
@@ -53,6 +58,25 @@ export default function NavBar() {
           <NavLink to="/admin" className={linkClass}>
             Admin
           </NavLink>
+          {token ? (
+            <div className="ml-2 flex items-center gap-2">
+              <span className="text-sm text-forest-50">{username}</span>
+              <button
+                type="button"
+                onClick={() => {
+                  logout()
+                  navigate('/auth')
+                }}
+                className="rounded-full px-3 py-2 text-sm font-semibold text-forest-50 transition-colors hover:bg-forest-light hover:text-white"
+              >
+                Log out
+              </button>
+            </div>
+          ) : (
+            <NavLink to="/auth" className={linkClass}>
+              Log in
+            </NavLink>
+          )}
 
           {/* Account chip */}
           <div className="relative ml-1">

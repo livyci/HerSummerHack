@@ -69,6 +69,12 @@ function asStringArray(value: unknown): string[] {
     : []
 }
 
+/** Remove already-owned product ids from a list, preserving order. */
+export function excludeOwned(ids: string[], owned: string[]): string[] {
+  const ownedSet = new Set(owned)
+  return ids.filter((id) => !ownedSet.has(id))
+}
+
 /**
  * Validate the model's raw object into SearchFilters, keeping only values that
  * actually exist in the catalogue so the LLM can never invent a tag/category/

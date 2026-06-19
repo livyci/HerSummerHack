@@ -10,6 +10,9 @@ interface ProductCardProps {
   added?: boolean
   reasons?: RecommendationReason[]
   favoriteColors?: string[]
+  owned?: boolean
+  onMarkBought?: (productId: string) => void
+  onUnmarkBought?: (productId: string) => void
 }
 
 export default function ProductCard({
@@ -18,6 +21,9 @@ export default function ProductCard({
   added,
   reasons,
   favoriteColors,
+  owned,
+  onMarkBought,
+  onUnmarkBought,
 }: ProductCardProps) {
   const discounted = product.discount_pct > 0
   const final = effectivePrice(product)
@@ -92,6 +98,25 @@ export default function ProductCard({
         >
           {added ? '✓ On your list' : 'Add to my list'}
         </button>
+      )}
+      {owned ? (
+        <button
+          type="button"
+          onClick={() => onUnmarkBought?.(product.product_id)}
+          className="mt-2 w-full rounded-xl bg-forest-50 px-4 py-2 text-sm font-semibold text-forest transition-colors hover:bg-forest hover:text-white"
+        >
+          ✓ Bought — tap to undo
+        </button>
+      ) : (
+        onMarkBought && (
+          <button
+            type="button"
+            onClick={() => onMarkBought(product.product_id)}
+            className="mt-2 w-full rounded-xl border border-forest px-4 py-2 text-sm font-semibold text-forest transition-colors hover:bg-forest hover:text-white"
+          >
+            Mark as bought
+          </button>
+        )
       )}
     </div>
   )

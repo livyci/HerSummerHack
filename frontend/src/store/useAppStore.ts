@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import type { ShoppingListItem, ScannedItem } from '../types'
 import { getSizesForProduct } from '../lib/products'
+import { getCurrentPrefs } from './useUserStore'
 
 interface AppState {
   shoppingList: ShoppingListItem[]
@@ -22,9 +23,12 @@ export const useAppStore = create<AppState>((set) => ({
         return state
       }
       const sizes = getSizesForProduct(productId)
+      const preferred = getCurrentPrefs().size
+      const selectedSize =
+        preferred && sizes.includes(preferred) ? preferred : sizes[0]
       const item: ShoppingListItem = {
         productId,
-        selectedSize: sizes[0],
+        selectedSize,
         checked: false,
         addedAt: Date.now(),
       }

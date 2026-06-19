@@ -3,6 +3,7 @@ import type { Product, SearchHistoryEntry } from '../types'
 import { discoverProducts, MissingApiKeyError } from '../lib/claude'
 import { getUniqueProducts, getProductById } from '../lib/products'
 import { useAppStore } from '../store/useAppStore'
+import { useCurrentUser } from '../store/useUserStore'
 import ProductCard from '../components/ProductCard'
 
 const EXAMPLE_PROMPTS = [
@@ -30,6 +31,7 @@ export default function DiscoverPage() {
 
   const addToList = useAppStore((s) => s.addToList)
   const shoppingList = useAppStore((s) => s.shoppingList)
+  const current = useCurrentUser()
   const searchHistory = useAppStore((s) => s.searchHistory)
   const addSearch = useAppStore((s) => s.addSearch)
   const clearSearchHistory = useAppStore((s) => s.clearSearchHistory)
@@ -65,7 +67,7 @@ export default function DiscoverPage() {
     addSearch(trimmed, [])
 
     try {
-      const ids = await discoverProducts(trimmed, getUniqueProducts())
+      const ids = await discoverProducts(trimmed, getUniqueProducts(), current.prefs)
       const products = ids
         .map((id) => getProductById(id))
         .filter((p): p is Product => p !== undefined)
@@ -235,6 +237,7 @@ export default function DiscoverPage() {
                 added={shoppingList.some(
                   (i) => i.productId === product.product_id,
                 )}
+                favouriteColor={current.prefs.favouriteColor}
               />
             ))}
           </div>

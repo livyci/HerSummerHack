@@ -4,6 +4,7 @@ import DiscoverPage from './pages/DiscoverPage'
 import ShoppingPage from './pages/ShoppingPage'
 import InventoryPage from './pages/InventoryPage'
 import AdminPage from './pages/AdminPage'
+import ProfilePage from './pages/ProfilePage'
 
 export default function App() {
   return (
@@ -15,6 +16,7 @@ export default function App() {
           <Route path="/shopping" element={<ShoppingPage />} />
           <Route path="/inventory" element={<InventoryPage />} />
           <Route path="/admin" element={<AdminPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
         </Routes>
       </main>
     </div>

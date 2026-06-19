@@ -7,17 +7,27 @@ interface ProductCardProps {
   product: Product
   onAdd?: (productId: string) => void
   added?: boolean
+  favouriteColor?: string
 }
 
-export default function ProductCard({ product, onAdd, added }: ProductCardProps) {
+export default function ProductCard({
+  product,
+  onAdd,
+  added,
+  favouriteColor,
+}: ProductCardProps) {
   const discounted = product.discount_pct > 0
   const final = effectivePrice(product)
+  // Substring match is intentional: favourite "Teal" also highlights "Teal Stripe", "Teal Dot", etc.
+  const isFavColor =
+    !!favouriteColor &&
+    product.color.toLowerCase().includes(favouriteColor.toLowerCase())
 
   return (
     <div
       className={`flex flex-col rounded-xl bg-white p-4 shadow-sm ${
         discounted ? 'border-2 border-amber bg-amber/5' : 'border border-slate-bg'
-      }`}
+      } ${isFavColor ? 'ring-2 ring-amber ring-offset-2' : ''}`}
     >
       <div className="flex items-start justify-between gap-2">
         <h3 className="text-base font-bold text-gray-900 leading-tight">
@@ -29,7 +39,14 @@ export default function ProductCard({ product, onAdd, added }: ProductCardProps)
       <p className="mt-0.5 text-sm text-gray-500">
         {product.brand} · {formatCategory(product.category)}
       </p>
-      <p className="text-sm text-gray-500">{product.color}</p>
+      <p className="text-sm text-gray-500">
+        {product.color}
+        {isFavColor && (
+          <span className="ml-2 rounded-full bg-amber/15 px-2 py-0.5 text-xs font-semibold text-amber-dark">
+            ♥ your colour
+          </span>
+        )}
+      </p>
 
       <div className="mt-2 flex items-baseline gap-2">
         {discounted ? (

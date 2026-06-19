@@ -69,8 +69,24 @@ function extractStringArray(text: string): string[] {
 export async function discoverProducts(
   userPrompt: string,
   catalogue: Product[],
+  prefs?: { size?: string; favouriteColor?: string },
 ): Promise<string[]> {
   assertKey()
+
+  const prefLines: string[] = []
+  if (prefs?.size) {
+    prefLines.push(
+      `The shopper's clothing size is ${prefs.size}; prefer products that are available in that size.`,
+    )
+  }
+  if (prefs?.favouriteColor) {
+    prefLines.push(
+      `The shopper's favourite colour is ${prefs.favouriteColor}; when two products are equally relevant, rank the one in or closest to that colour higher.`,
+    )
+  }
+  const prefBlock = prefLines.length
+    ? `\n\nShopper preferences:\n${prefLines.join('\n')}`
+    : ''
 
   // Defense-in-depth against prompt injection: cap the untrusted free-text
   // input and pass it as clearly delimited data, never as instructions. The
@@ -86,7 +102,7 @@ export async function discoverProducts(
     messages: [
       {
         role: 'user',
-        content: `<user_query>${safePrompt}</user_query>\n\n<catalogue>${JSON.stringify(catalogue)}</catalogue>`,
+        content: `<user_query>${safePrompt}</user_query>${prefBlock}\n\n<catalogue>${JSON.stringify(catalogue)}</catalogue>`,
       },
     ],
   })

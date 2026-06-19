@@ -6,6 +6,10 @@ export default function ShoppingList() {
   const removeFromList = useAppStore((s) => s.removeFromList)
   const toggleChecked = useAppStore((s) => s.toggleChecked)
   const setSize = useAppStore((s) => s.setSize)
+  const token = useAppStore((s) => s.token)
+  const purchases = useAppStore((s) => s.purchases)
+  const markAsBought = useAppStore((s) => s.markAsBought)
+  const unmarkBought = useAppStore((s) => s.unmarkBought)
 
   if (shoppingList.length === 0) {
     return (
@@ -73,6 +77,24 @@ export default function ShoppingList() {
               <p className="mt-2 text-sm text-gray-600">
                 Find it in Zone {product.zone}, Aisle {product.aisle}
               </p>
+              {token &&
+                (purchases.includes(item.productId) ? (
+                  <button
+                    type="button"
+                    onClick={() => unmarkBought(item.productId)}
+                    className="mt-2 rounded-lg bg-forest-50 px-3 py-1.5 text-xs font-semibold text-forest transition-colors hover:bg-forest hover:text-white"
+                  >
+                    ✓ Bought — undo
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => markAsBought(item.productId)}
+                    className="mt-2 rounded-lg border border-forest px-3 py-1.5 text-xs font-semibold text-forest transition-colors hover:bg-forest hover:text-white"
+                  >
+                    Mark as bought
+                  </button>
+                ))}
             </div>
 
             <button

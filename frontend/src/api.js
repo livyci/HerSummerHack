@@ -6,6 +6,14 @@ export function apiUrl(path) {
   return `${API_BASE}${path}`
 }
 
-export function apiFetch(path, options) {
-  return fetch(apiUrl(path), options)
+export function apiFetch(path, options = {}) {
+  const token = localStorage.getItem('token')
+  const headers = {
+    'Content-Type': 'application/json',
+    ...(options.headers || {}),
+  }
+  if (token) {
+    headers['Authorization'] = `Token ${token}`
+  }
+  return fetch(apiUrl(path), { ...options, headers })
 }

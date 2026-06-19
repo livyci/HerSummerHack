@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { Navigate } from 'react-router-dom'
 import type { SearchFilters } from '../types'
 import { parsePromptToFilters, MissingApiKeyError } from '../lib/claude'
 import {
@@ -12,7 +11,7 @@ import {
 } from '../lib/products'
 import { formatCategory } from '../lib/format'
 import { useAppStore } from '../store/useAppStore'
-import { usePreferencesStore } from '../store/usePreferencesStore'
+import { useCurrentUser } from '../store/useUserStore'
 import { useSearchStore, EMPTY_FILTERS, hasActiveFilters } from '../store/useSearchStore'
 import ProductCard from '../components/ProductCard'
 
@@ -42,11 +41,13 @@ function mergeFilters(base: SearchFilters, incoming: SearchFilters): SearchFilte
 }
 
 export default function DiscoverPage() {
-  const onboarded = usePreferencesStore((s) => s.preferences.onboarded)
-  const skippedOnboarding = usePreferencesStore((s) => s.skippedOnboarding)
-  const preferences = usePreferencesStore((s) => s.preferences)
+  const preferences = useCurrentUser().prefs
   const addToList = useAppStore((s) => s.addToList)
   const shoppingList = useAppStore((s) => s.shoppingList)
+  const purchases = useAppStore((s) => s.purchases)
+  const token = useAppStore((s) => s.token)
+  const markAsBought = useAppStore((s) => s.markAsBought)
+  const unmarkBought = useAppStore((s) => s.unmarkBought)
 
   // Filters live in a shared store so the Shopping page can compare scans
   // against the same search the shopper set here.
@@ -61,15 +62,13 @@ export default function DiscoverPage() {
   const [error, setError] = useState<string | null>(null)
   const [showAddFilter, setShowAddFilter] = useState(false)
 
-  // New shoppers set up preferences first; "Skip for now" lets them through
-  // for the session without marking them onboarded.
-  if (!onboarded && !skippedOnboarding) {
-    return <Navigate to="/preferences" replace />
-  }
-
-  // Pure, synchronous — recomputed on every render, no AI call.
+  // Pure, synchronous — recomputed on every render, no AI call. Already-bought
+  // items are filtered out so we never re-suggest gear the shopper owns.
+  const ownedSet = new Set(purchases)
   const results = engaged
-    ? filterProducts(CATALOGUE, filters, preferences)
+    ? filterProducts(CATALOGUE, filters, preferences).filter(
+        (p) => !ownedSet.has(p.product_id),
+      )
     : []
 
   const activeCount =
@@ -338,6 +337,10 @@ export default function DiscoverPage() {
                       (i) => i.productId === product.product_id,
                     )}
                     reasons={explainRecommendation(product, filters, preferences)}
+                    favoriteColors={preferences.favoriteColors}
+                    owned={purchases.includes(product.product_id)}
+                    onMarkBought={token ? markAsBought : undefined}
+                    onUnmarkBought={token ? unmarkBought : undefined}
                   />
                 ))}
               </div>

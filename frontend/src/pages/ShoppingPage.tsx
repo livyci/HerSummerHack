@@ -10,7 +10,7 @@ import {
 import { formatCategory } from '../lib/format'
 import { useAppStore } from '../store/useAppStore'
 import { useSearchStore, hasActiveFilters } from '../store/useSearchStore'
-import { usePreferencesStore } from '../store/usePreferencesStore'
+import { useCurrentUser } from '../store/useUserStore'
 import ScanInput from '../components/ScanInput'
 import ShoppingList from '../components/ShoppingList'
 import Recommendations from '../components/Recommendations'
@@ -30,7 +30,7 @@ export default function ShoppingPage() {
   const addScan = useAppStore((s) => s.addScan)
   const shoppingList = useAppStore((s) => s.shoppingList)
   const filters = useSearchStore((s) => s.filters)
-  const preferences = usePreferencesStore((s) => s.preferences)
+  const preferences = useCurrentUser().prefs
 
   const [tab, setTab] = useState<MobileTab>('list')
   const [scanned, setScanned] = useState<Product | null>(null)

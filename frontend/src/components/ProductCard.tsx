@@ -9,6 +9,10 @@ interface ProductCardProps {
   onAdd?: (productId: string) => void
   added?: boolean
   reasons?: RecommendationReason[]
+  favoriteColors?: string[]
+  owned?: boolean
+  onMarkBought?: (productId: string) => void
+  onUnmarkBought?: (productId: string) => void
 }
 
 export default function ProductCard({
@@ -16,15 +20,26 @@ export default function ProductCard({
   onAdd,
   added,
   reasons,
+  favoriteColors,
+  owned,
+  onMarkBought,
+  onUnmarkBought,
 }: ProductCardProps) {
   const discounted = product.discount_pct > 0
   const final = effectivePrice(product)
+  // Substring match is intentional: favourite "Teal" also highlights
+  // "Teal Stripe", "Teal Dot", etc.
+  const isFavColor =
+    !!favoriteColors &&
+    favoriteColors.some((fc) =>
+      product.color.toLowerCase().includes(fc.toLowerCase()),
+    )
 
   return (
     <div
       className={`flex flex-col rounded-xl bg-white p-4 shadow-sm ${
         discounted ? 'border-2 border-amber bg-amber/5' : 'border border-slate-bg'
-      }`}
+      } ${isFavColor ? 'ring-2 ring-amber ring-offset-2' : ''}`}
     >
       <div className="flex items-start justify-between gap-2">
         <h3 className="text-base font-bold text-gray-900 leading-tight">
@@ -44,9 +59,7 @@ export default function ProductCard({
             <span className="text-sm text-gray-400 line-through">
               CHF {product.price_chf}
             </span>
-            <span className="text-lg font-bold text-amber-dark">
-              CHF {final}
-            </span>
+            <span className="text-lg font-bold text-amber-dark">CHF {final}</span>
           </>
         ) : (
           <span className="text-lg font-bold text-forest">
@@ -85,6 +98,25 @@ export default function ProductCard({
         >
           {added ? '✓ On your list' : 'Add to my list'}
         </button>
+      )}
+      {owned ? (
+        <button
+          type="button"
+          onClick={() => onUnmarkBought?.(product.product_id)}
+          className="mt-2 w-full rounded-xl bg-forest-50 px-4 py-2 text-sm font-semibold text-forest transition-colors hover:bg-forest hover:text-white"
+        >
+          ✓ Bought — tap to undo
+        </button>
+      ) : (
+        onMarkBought && (
+          <button
+            type="button"
+            onClick={() => onMarkBought(product.product_id)}
+            className="mt-2 w-full rounded-xl border border-forest px-4 py-2 text-sm font-semibold text-forest transition-colors hover:bg-forest hover:text-white"
+          >
+            Mark as bought
+          </button>
+        )
       )}
     </div>
   )

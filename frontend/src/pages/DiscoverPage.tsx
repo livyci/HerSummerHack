@@ -32,7 +32,7 @@ export default function DiscoverPage() {
     setSearched(true)
 
     try {
-      const ids = await discoverProducts(trimmed, getUniqueProducts())
+      const ids = await discoverProducts(trimmed, getUniqueProducts(), current.prefs)
       const products = ids
         .map((id) => getProductById(id))
         .filter((p): p is Product => p !== undefined)

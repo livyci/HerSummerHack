@@ -66,8 +66,24 @@ function extractStringArray(text: string): string[] {
 export async function discoverProducts(
   userPrompt: string,
   catalogue: Product[],
+  prefs?: { size?: string; favouriteColor?: string },
 ): Promise<string[]> {
   assertKey()
+
+  const prefLines: string[] = []
+  if (prefs?.size) {
+    prefLines.push(
+      `The shopper's clothing size is ${prefs.size}; prefer products that are available in that size.`,
+    )
+  }
+  if (prefs?.favouriteColor) {
+    prefLines.push(
+      `The shopper's favourite colour is ${prefs.favouriteColor}; when two products are equally relevant, rank the one in or closest to that colour higher.`,
+    )
+  }
+  const prefBlock = prefLines.length
+    ? `\n\nShopper preferences:\n${prefLines.join('\n')}`
+    : ''
 
   const message = await client.messages.create({
     model: MODEL,
@@ -77,7 +93,7 @@ export async function discoverProducts(
     messages: [
       {
         role: 'user',
-        content: `User need: ${userPrompt}\n\nCatalogue: ${JSON.stringify(catalogue)}`,
+        content: `User need: ${userPrompt}${prefBlock}\n\nCatalogue: ${JSON.stringify(catalogue)}`,
       },
     ],
   })

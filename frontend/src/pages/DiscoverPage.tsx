@@ -3,6 +3,7 @@ import type { Product } from '../types'
 import { discoverProducts, MissingApiKeyError } from '../lib/claude'
 import { getUniqueProducts, getProductById } from '../lib/products'
 import { useAppStore } from '../store/useAppStore'
+import { useCurrentUser } from '../store/useUserStore'
 import ProductCard from '../components/ProductCard'
 
 const EXAMPLE_PROMPTS = [
@@ -20,6 +21,7 @@ export default function DiscoverPage() {
 
   const addToList = useAppStore((s) => s.addToList)
   const shoppingList = useAppStore((s) => s.shoppingList)
+  const current = useCurrentUser()
 
   async function handleSubmit() {
     const trimmed = prompt.trim()
@@ -151,6 +153,7 @@ export default function DiscoverPage() {
                 added={shoppingList.some(
                   (i) => i.productId === product.product_id,
                 )}
+                favouriteColor={current.prefs.favouriteColor}
               />
             ))}
           </div>
